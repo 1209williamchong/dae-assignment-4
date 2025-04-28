@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { CheckAuthResponse } from '../config/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: string | null;
-  login: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   error: string | null;
   isLoading: boolean;
@@ -29,27 +30,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const checkAuth = async () => {
     try {
       const response = await apiService.checkAuth();
-      if (response.isAuthenticated) {
+      if (response.user_id) {
         setIsAuthenticated(true);
-        setUser(response.username);
+        setUser(response.user_id.toString());
+      } else {
+        throw new Error('未認證');
       }
     } catch (err) {
+      console.error('認證檢查失敗:', err);
       localStorage.removeItem('token');
       setIsAuthenticated(false);
       setUser(null);
     }
   };
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await apiService.login({ username, password });
+      const response = await apiService.login(email, password);
       localStorage.setItem('token', response.token);
       setIsAuthenticated(true);
-      setUser(username);
+      setUser(email);
     } catch (err) {
-      setError('登入失敗，請檢查用戶名和密碼');
+      console.error('登入失敗:', err);
+      setError('登入失敗，請檢查電子郵件和密碼');
       throw err;
     } finally {
       setIsLoading(false);

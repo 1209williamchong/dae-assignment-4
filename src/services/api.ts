@@ -16,151 +16,107 @@ import {
 import { Software, SoftwareListResponse } from '../types/software';
 
 class ApiService {
-  private baseUrl: string;
-  private defaultHeaders: Record<string, string>;
-  private token: string | null = null;
+  private baseURL: string;
+  private token: string | null;
 
   constructor() {
-    this.baseUrl = API_CONFIG.BASE_URL;
-    this.defaultHeaders = API_CONFIG.DEFAULT_HEADERS;
+    this.baseURL = API_CONFIG.BASE_URL;
     this.token = localStorage.getItem('token');
   }
 
-  private getAuthHeaders(): Record<string, string> {
-    return this.token
-      ? { ...this.defaultHeaders, Authorization: `Bearer ${this.token}` }
-      : this.defaultHeaders;
-  }
-
-  private buildQueryString(params: Record<string, any>): string {
-    const queryParams = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        queryParams.append(key, String(value));
-      }
-    });
-
-    return queryParams.toString() ? `?${queryParams.toString()}` : '';
-  }
-
-  private async handleError(response: Response): Promise<never> {
-    const status = response.status as HttpStatusCode;
-    let errorMessage = API_CONFIG.ERROR_MESSAGES[status] || '未知錯誤';
-
-    try {
-      const errorData: ApiError = await response.json();
-      errorMessage = errorData.error || errorMessage;
-    } catch {
-      // 如果無法解析 JSON，使用默認錯誤消息
-    }
-
-    if (status === HttpStatusCode.Unauthorized) {
-      this.token = null;
-      localStorage.removeItem('token');
-    }
-
-    throw new ApiException(status, errorMessage);
-  }
-
-  private async request<T>(
-    endpoint: string,
-    method: string = 'GET',
-    data?: any,
-    requiresAuth: boolean = false
-  ): Promise<T> {
-    const headers = requiresAuth ? this.getAuthHeaders() : this.defaultHeaders;
-
-    const options: RequestInit = {
-      method,
-      headers,
+  private get headers() {
+    return {
+      'Content-Type': 'application/json',
+      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {})
     };
+  }
 
-    if (data) {
-      options.body = JSON.stringify(data);
-    }
-
+  private async request<T>(url: string, options: RequestInit = {}): Promise<T> {
     try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+      const response = await fetch(`${this.baseURL}${url}`, {
+        ...options,
+        headers: {
+          ...this.headers,
+          ...options.headers
+        }
+      });
 
       if (!response.ok) {
-        return this.handleError(response);
+        if (response.status === 401) {
+          localStorage.removeItem('token');
+          this.token = null;
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiException(
+          response.status as HttpStatusCode,
+          errorData.message || API_CONFIG.ERROR_MESSAGES[response.status as HttpStatusCode] || '請求失敗'
+        );
       }
 
-      return await response.json();
+      return response.json();
     } catch (error) {
       if (error instanceof ApiException) {
         throw error;
       }
-      console.error('API request failed:', error);
-      throw new ApiException(HttpStatusCode.InternalServerError, '請求失敗，請稍後再試');
+      throw new ApiException(
+        HttpStatusCode.InternalServerError,
+        '網路錯誤'
+      );
     }
   }
 
   // Auth endpoints
   async signup(credentials: AuthCredentials): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>(
-      API_CONFIG.ENDPOINTS.AUTH.SIGNUP,
-      'POST',
-      credentials
-    );
+    const response = await this.request<AuthResponse>(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
+      method: 'POST',
+      body: JSON.stringify(credentials)
+    });
     this.token = response.token;
     localStorage.setItem('token', response.token);
     return response;
   }
 
-  async login(credentials: AuthCredentials): Promise<AuthResponse> {
-    const response = await this.request<AuthResponse>(
-      API_CONFIG.ENDPOINTS.AUTH.LOGIN,
-      'POST',
-      credentials
-    );
+  async login(email: string, password: string): Promise<{ token: string }> {
+    const response = await this.request<{ token: string }>(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
     this.token = response.token;
     localStorage.setItem('token', response.token);
     return response;
   }
 
   async checkAuth(): Promise<CheckAuthResponse> {
-    return this.request<CheckAuthResponse>(API_CONFIG.ENDPOINTS.AUTH.CHECK, 'GET', undefined, true);
+    return this.request<CheckAuthResponse>(API_CONFIG.ENDPOINTS.AUTH.PROFILE, {
+      method: 'GET'
+    });
   }
 
   // Bookmark endpoints
-  async getBookmarks(): Promise<BookmarksResponse> {
-    return this.request<BookmarksResponse>(
-      API_CONFIG.ENDPOINTS.BOOKMARKS.LIST,
-      'GET',
-      undefined,
-      true
-    );
+  async getBookmarks(): Promise<BookmarkMessage[]> {
+    return this.request<BookmarkMessage[]>(API_CONFIG.ENDPOINTS.BOOKMARKS.LIST, {
+      method: 'GET'
+    });
   }
 
-  async addBookmark(itemId: number): Promise<BookmarkResponse> {
-    return this.request<BookmarkResponse>(
-      API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
-      'POST',
-      undefined,
-      true
-    );
+  async addBookmark(softwareId: string): Promise<BookmarkMessage> {
+    return this.request<BookmarkMessage>(API_CONFIG.ENDPOINTS.BOOKMARKS.ADD, {
+      method: 'POST',
+      body: JSON.stringify({ softwareId })
+    });
   }
 
-  async removeBookmark(itemId: number): Promise<BookmarkResponse> {
-    return this.request<BookmarkResponse>(
-      API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
-      'DELETE',
-      undefined,
-      true
-    );
+  async removeBookmark(softwareId: string): Promise<void> {
+    return this.request<void>(`${API_CONFIG.ENDPOINTS.BOOKMARKS.REMOVE}/${softwareId}`, {
+      method: 'DELETE'
+    });
   }
 
-  async toggleBookmark(itemId: number): Promise<BookmarkResponse> {
-    const bookmarks = await this.getBookmarks();
-    const isBookmarked = bookmarks.item_ids.includes(itemId);
-
-    if (isBookmarked) {
-      return this.removeBookmark(itemId);
-    } else {
-      return this.addBookmark(itemId);
-    }
+  async toggleBookmark(softwareId: string): Promise<BookmarkMessage> {
+    return this.request<BookmarkMessage>(API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE, {
+      method: 'POST',
+      body: JSON.stringify({ softwareId })
+    });
   }
 
   // Software endpoints
@@ -169,51 +125,53 @@ class ApiService {
     search?: string;
     categories?: string[];
     sortBy?: string;
-    sortDirection?: boolean;
+    sortDirection?: 'asc' | 'desc';
     startDate?: string;
     endDate?: string;
   }): Promise<SoftwareListResponse> {
     const queryParams = new URLSearchParams();
-    if (params.page) queryParams.append('page', params.page.toString());
-    if (params.search) queryParams.append('search', params.search);
-    if (params.categories?.length) queryParams.append('categories', params.categories.join(','));
-    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
-    if (params.sortDirection !== undefined) queryParams.append('sortDirection', params.sortDirection.toString());
-    if (params.startDate) queryParams.append('startDate', params.startDate);
-    if (params.endDate) queryParams.append('endDate', params.endDate);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        if (Array.isArray(value)) {
+          value.forEach(item => queryParams.append(key, item));
+        } else {
+          queryParams.append(key, String(value));
+        }
+      }
+    });
 
-    return this.request<SoftwareListResponse>(
-      `${API_CONFIG.ENDPOINTS.SOFTWARE.LIST}?${queryParams.toString()}`,
-      'GET'
-    );
+    return this.request<SoftwareListResponse>(`${API_CONFIG.ENDPOINTS.SOFTWARE.LIST}?${queryParams.toString()}`, {
+      method: 'GET'
+    });
   }
 
   async getSoftwareDetail(name: string): Promise<Software> {
-    return this.request<Software>(
-      API_CONFIG.ENDPOINTS.SOFTWARE.DETAIL(name),
-      'GET'
-    );
+    return this.request<Software>(`${API_CONFIG.ENDPOINTS.SOFTWARE.DETAIL}/${name}`, {
+      method: 'GET'
+    });
   }
 
   async createSoftware(data: Omit<SoftwareItem, 'id'>): Promise<SoftwareItem> {
-    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.CREATE, 'POST', data, true);
+    return this.request<SoftwareItem>({
+      method: 'POST',
+      url: API_CONFIG.ENDPOINTS.SOFTWARE.CREATE,
+      data
+    });
   }
 
   async updateSoftware(id: string, data: Partial<SoftwareItem>): Promise<SoftwareItem> {
-    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.UPDATE(id), 'PUT', data, true);
+    return this.request<SoftwareItem>({
+      method: 'PUT',
+      url: API_CONFIG.ENDPOINTS.SOFTWARE.UPDATE(id),
+      data
+    });
   }
 
   async deleteSoftware(id: string): Promise<void> {
-    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.DELETE(id), 'DELETE', undefined, true);
-  }
-
-  async toggleBookmark(name: string): Promise<void> {
-    const response = await fetch(`${this.baseUrl}/software/${name}/bookmark`, {
-      method: 'POST',
+    return this.request<void>({
+      method: 'DELETE',
+      url: API_CONFIG.ENDPOINTS.SOFTWARE.DELETE(id)
     });
-    if (!response.ok) {
-      throw new Error('書籤操作失敗');
-    }
   }
 }
 
