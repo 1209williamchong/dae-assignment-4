@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { setupIonicReact } from '@ionic/react';
 import App from './App';
-import './App.css';
+import './index.css';
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+setupIonicReact();
 
-root.render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />
   </React.StrictMode>

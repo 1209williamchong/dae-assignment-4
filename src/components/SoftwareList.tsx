@@ -31,67 +31,73 @@ import {
   IonCardSubtitle,
   IonCardContent,
   IonSkeletonText,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonButtons,
+  IonMenuButton,
 } from '@ionic/react';
-import { heart, heartOutline, star } from 'ionicons/icons';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import {
+  heart,
+  heartOutline,
+  star,
+  bookmark,
+  bookmarkOutline,
+  gridOutline,
+  listOutline,
+} from 'ionicons/icons';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Software, SoftwareListResponse, SoftwareFilters } from '../types/software';
 import Chart from 'chart.js/auto';
-
-const fetchSoftware = async ({
-  pageParam = 1,
-  queryKey,
-}: {
-  pageParam?: number;
-  queryKey: any[];
-}): Promise<SoftwareListResponse> => {
-  const [_, search, category] = queryKey;
-  const response = await fetch(
-    `/api/software?page=${pageParam}&search=${search}&category=${category}`
-  );
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-};
+import { softwareData } from '../data/softwareData';
+import { api } from '../services/api';
+import { useHistory } from 'react-router-dom';
+import './SoftwareList.css';
 
 const SoftwareList: React.FC = () => {
+  const history = useHistory();
   const [filters, setFilters] = useState<SoftwareFilters>({
     search: '',
-    searchFields: ['name', 'description', 'tags'],
+    searchFields: ['name', 'description'],
     exactMatch: false,
     view: 'list',
-    categories: [''],
+    categories: [],
     sortBy: 'name',
     sortDirection: true,
     startDate: '',
     endDate: '',
-    activeCategoryTags: [],
-    activeTags: [],
   });
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const chartRef = useRef<HTMLCanvasElement>(null);
-  const chartInstance = useRef<Chart | null>(null);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, error } =
-    useInfiniteQuery({
-      queryKey: ['software', filters.search, filters.categories.join(',')],
-      queryFn: fetchSoftware,
-      getNextPageParam: lastPage => lastPage.nextPage,
-      retry: 3,
-      refetchOnWindowFocus: false,
-    });
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['software', filters],
+    queryFn: ({ pageParam = 1 }) => api.getSoftwareList({ ...filters, page: pageParam }),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    initialPageParam: 1,
+  });
+
+  const {
+    data: softwareData,
+    isLoading: softwareDataLoading,
+    error: softwareDataError,
+  } = useQuery({
+    queryKey: ['software', { search: filters.search, categories: filters.categories }],
+    queryFn: () => api.getSoftwareList({ search: filters.search, categories: filters.categories }),
+  });
 
   useEffect(() => {
     const savedFilters = localStorage.getItem('softwareFilters');
     const savedFavorites = localStorage.getItem('softwareFavorites');
 
     if (savedFilters) {
-      setFilters(JSON.parse(savedFilters));
-    }
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
+      const filters = JSON.parse(savedFilters);
+      setFilters(filters);
     }
 
     setTimeout(() => {
@@ -100,218 +106,114 @@ const SoftwareList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('softwareFilters', JSON.stringify(filters));
-  }, [filters]);
+    localStorage.setItem(
+      'softwareFilters',
+      JSON.stringify({
+        search: filters.search,
+        searchFields: filters.searchFields,
+        exactMatch: filters.exactMatch,
+        view: filters.view,
+        categories: filters.categories,
+        sortBy: filters.sortBy,
+        sortDirection: filters.sortDirection,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+      })
+    );
+  }, [
+    filters.search,
+    filters.searchFields,
+    filters.exactMatch,
+    filters.view,
+    filters.categories,
+    filters.sortBy,
+    filters.sortDirection,
+    filters.startDate,
+    filters.endDate,
+  ]);
 
   useEffect(() => {
-    localStorage.setItem('softwareFavorites', JSON.stringify(favorites));
-  }, [favorites]);
+    localStorage.setItem('softwareFavorites', JSON.stringify(filters.categories));
+  }, [filters.categories]);
 
-  const handleFilterChange = (key: keyof SoftwareFilters, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  const handleSearch = (value: string) => {
+    setFilters(prev => ({ ...prev, search: value }));
   };
 
-  const toggleFavorite = (name: string) => {
-    setFavorites(prev => (prev.includes(name) ? prev.filter(f => f !== name) : [...prev, name]));
+  const handleViewChange = (view: 'list' | 'grid') => {
+    setFilters(prev => ({ ...prev, view }));
   };
 
-  const resetFilters = () => {
-    setFilters({
-      search: '',
-      searchFields: ['name', 'description', 'tags'],
-      exactMatch: false,
-      view: 'list',
-      categories: [''],
-      sortBy: 'name',
-      sortDirection: true,
-      startDate: '',
-      endDate: '',
-      activeCategoryTags: [],
-      activeTags: [],
-    });
+  const handleSort = (sortBy: string) => {
+    setFilters(prev => ({
+      ...prev,
+      sortBy,
+      sortDirection: prev.sortBy === sortBy ? !prev.sortDirection : true,
+    }));
   };
 
-  const filteredSoftware = data?.pages
-    .flatMap(page => page.items)
-    .filter(software => {
-      const matchesSearch =
-        !filters.search ||
-        filters.searchFields.some(field => {
-          const value = software[field as keyof Software]?.toString().toLowerCase() || '';
-          return filters.exactMatch
-            ? value === filters.search.toLowerCase()
-            : value.includes(filters.search.toLowerCase());
-        });
-
-      const matchesCategory =
-        filters.categories.length === 0 ||
-        filters.categories.includes(software.category) ||
-        (filters.categories.includes('favorites') && favorites.includes(software.name));
-
-      const matchesDate =
-        (!filters.startDate || software.date >= filters.startDate) &&
-        (!filters.endDate || software.date <= filters.endDate);
-
-      return matchesSearch && matchesCategory && matchesDate;
-    })
-    .sort((a, b) => {
-      const aVal = a[filters.sortBy].toLowerCase();
-      const bVal = b[filters.sortBy].toLowerCase();
-      return filters.sortDirection ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-    });
-
-  useEffect(() => {
-    if (chartRef.current && !isLoading) {
-      if (chartInstance.current) {
-        chartInstance.current.destroy();
-      }
-
-      const categories = filteredSoftware.reduce(
-        (acc, item) => {
-          acc[item.category] = (acc[item.category] || 0) + 1;
-          return acc;
-        },
-        {} as Record<string, number>
-      );
-
-      const labels = Object.keys(categories);
-      const data = labels.map(label => categories[label]);
-      const backgroundColors = labels.map((_, i) => `hsl(${i * 36}, 70%, 50%)`);
-
-      chartInstance.current = new Chart(chartRef.current, {
-        type: 'doughnut',
-        data: {
-          labels,
-          datasets: [
-            {
-              data,
-              backgroundColor: backgroundColors,
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: {
-                font: { size: 12 },
-                padding: 10,
-              },
-            },
-          },
-        },
-      });
+  const handleBookmark = async (software: Software) => {
+    try {
+      await api.toggleBookmark(software.name);
+    } catch (err) {
+      console.error('書籤操作失敗:', err);
     }
-  }, [filteredSoftware, isLoading]);
+  };
+
+  if (isLoading) {
+    return (
+      <IonPage>
+        <IonContent>
+          <div className="loading">載入中...</div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  if (error) {
+    return (
+      <IonPage>
+        <IonContent>
+          <div className="error">載入失敗，請稍後再試</div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  const softwareList = data?.pages.flatMap(page => page.items) || [];
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
+          <IonButtons slot="start">
+            <IonMenuButton />
+          </IonButtons>
           <IonTitle>開源軟體清單</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => handleViewChange('list')}>
+              <IonIcon icon={listOutline} />
+            </IonButton>
+            <IonButton onClick={() => handleViewChange('grid')}>
+              <IonIcon icon={gridOutline} />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
-        <IonSearchbar
-          value={filters.search}
-          onIonChange={e => handleFilterChange('search', e.detail.value)}
-          placeholder="搜尋..."
-          debounce={300}
-        />
-        <IonItem>
+        <IonToolbar>
+          <IonSearchbar
+            value={filters.search}
+            onIonChange={e => handleSearch(e.detail.value!)}
+            placeholder="搜尋軟體..."
+          />
           <IonSelect
-            label="搜尋欄位"
-            value={filters.searchFields}
-            multiple={true}
-            onIonChange={e => handleFilterChange('searchFields', e.detail.value)}
-          >
-            <IonSelectOption value="name">名稱</IonSelectOption>
-            <IonSelectOption value="version">版本</IonSelectOption>
-            <IonSelectOption value="description">描述</IonSelectOption>
-            <IonSelectOption value="tags">標籤</IonSelectOption>
-          </IonSelect>
-          <IonToggle
-            checked={filters.exactMatch}
-            onIonChange={e => handleFilterChange('exactMatch', e.detail.checked)}
-            slot="end"
-          >
-            精確搜尋
-          </IonToggle>
-        </IonItem>
-        <IonSegment
-          value={filters.view}
-          onIonChange={e => handleFilterChange('view', e.detail.value)}
-        >
-          <IonSegmentButton value="list">
-            <IonLabel>列表</IonLabel>
-          </IonSegmentButton>
-          <IonSegmentButton value="grid">
-            <IonLabel>網格</IonLabel>
-          </IonSegmentButton>
-        </IonSegment>
-        <IonItem>
-          <IonSelect
-            label="排序方式"
             value={filters.sortBy}
-            onIonChange={e => handleFilterChange('sortBy', e.detail.value)}
+            onIonChange={e => handleSort(e.detail.value)}
+            interface="popover"
           >
             <IonSelectOption value="name">名稱</IonSelectOption>
-            <IonSelectOption value="version">版本</IonSelectOption>
+            <IonSelectOption value="date">日期</IonSelectOption>
           </IonSelect>
-          <IonToggle
-            checked={filters.sortDirection}
-            onIonChange={e => handleFilterChange('sortDirection', e.detail.checked)}
-            slot="end"
-          >
-            降冪
-          </IonToggle>
-        </IonItem>
-        <IonItem>
-          <IonSelect
-            label="分類"
-            value={filters.categories}
-            multiple={true}
-            onIonChange={e => handleFilterChange('categories', e.detail.value)}
-          >
-            <IonSelectOption value="">全部</IonSelectOption>
-            <IonSelectOption value="favorites">收藏</IonSelectOption>
-            <IonSelectOption value="網頁瀏覽器">網頁瀏覽器</IonSelectOption>
-            <IonSelectOption value="作業系統">作業系統</IonSelectOption>
-            <IonSelectOption value="辦公室軟體">辦公室軟體</IonSelectOption>
-            <IonSelectOption value="圖像編輯器">圖像編輯器</IonSelectOption>
-            <IonSelectOption value="版本控制">版本控制</IonSelectOption>
-            <IonSelectOption value="程式設計工具">程式設計工具</IonSelectOption>
-            <IonSelectOption value="資料庫">資料庫</IonSelectOption>
-            <IonSelectOption value="媒體播放器">媒體播放器</IonSelectOption>
-            <IonSelectOption value="檔案管理">檔案管理</IonSelectOption>
-            <IonSelectOption value="網頁伺服器">網頁伺服器</IonSelectOption>
-          </IonSelect>
-        </IonItem>
-        <IonItem>
-          <IonLabel>日期範圍</IonLabel>
-          <IonDatetimeButton datetime="startDate" />
-          <IonDatetimeButton datetime="endDate" />
-        </IonItem>
-        <IonModal>
-          <IonDatetime
-            id="startDate"
-            presentation="date"
-            max="2025-12-31"
-            value={filters.startDate}
-            onIonChange={e => handleFilterChange('startDate', e.detail.value)}
-          />
-          <IonDatetime
-            id="endDate"
-            presentation="date"
-            max="2025-12-31"
-            value={filters.endDate}
-            onIonChange={e => handleFilterChange('endDate', e.detail.value)}
-          />
-        </IonModal>
-        <IonButton expand="block" color="light" onClick={resetFilters}>
-          重設過濾
-        </IonButton>
+        </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
         <div style={{ height: '150px', margin: '8px', position: 'relative' }}>
@@ -330,78 +232,81 @@ const SoftwareList: React.FC = () => {
             <canvas ref={chartRef} />
           )}
         </div>
-        {isLoading ? (
+        {filters.view === 'list' ? (
           <IonList>
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="skeleton-card" style={{ margin: '8px', padding: '8px' }}>
-                <IonSkeletonText
-                  animated
-                  style={{ width: '100%', height: '20px', marginBottom: '8px' }}
-                />
-                <IonSkeletonText
-                  animated
-                  style={{ width: '80%', height: '16px', marginBottom: '8px' }}
-                />
-                <IonSkeletonText
-                  animated
-                  style={{ width: '60%', height: '16px', marginBottom: '8px' }}
-                />
-                <IonSkeletonText animated style={{ width: '100%', height: '150px' }} />
-              </div>
-            ))}
-          </IonList>
-        ) : (
-          <IonList className={`${filters.view}-view`}>
-            {filteredSoftware.length === 0 ? (
+            {softwareList.length === 0 ? (
               <p className="no-results">無符合結果</p>
             ) : (
-              filteredSoftware.map(software => (
-                <IonCard key={software.name}>
-                  <IonCardHeader>
-                    <img
-                      src={software.icon}
-                      alt={`${software.name} 圖示`}
-                      className="software-icon"
-                    />
-                    <div className="software-details">
-                      <IonCardTitle>{software.name}</IonCardTitle>
-                      <IonCardSubtitle>版本：{software.version}</IonCardSubtitle>
-                      <IonCardSubtitle>授權：{software.license}</IonCardSubtitle>
+              softwareList.map(software => (
+                <IonItem
+                  key={software.name}
+                  onClick={() => history.push(`/software/${software.name}`)}
+                >
+                  <IonLabel>
+                    <h2>{software.name}</h2>
+                    <p>{software.description}</p>
+                    <div className="tags">
+                      <IonBadge color="primary">{software.category}</IonBadge>
+                      <IonBadge color="secondary">{software.license}</IonBadge>
                     </div>
-                    <IonIcon
-                      icon={favorites.includes(software.name) ? star : starOutline}
-                      className={`favorite-icon ${favorites.includes(software.name) ? 'favorited' : ''}`}
-                      onClick={() => toggleFavorite(software.name)}
-                    />
-                  </IonCardHeader>
-                  <IonCardContent>
-                    <p>描述：{software.description}</p>
-                    <p>
-                      分類：<span className="category-tag">{software.category}</span>
-                    </p>
-                    <p>
-                      標籤：
-                      {software.tags.map(tag => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </p>
-                    <div className="video-container">
-                      <iframe
-                        src={software.video}
-                        title={`${software.name} 示範影片`}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        loading="lazy"
-                      />
-                    </div>
-                  </IonCardContent>
-                </IonCard>
+                  </IonLabel>
+                  <IonButton
+                    slot="end"
+                    fill="clear"
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleBookmark(software);
+                    }}
+                  >
+                    <IonIcon icon={software.isBookmarked ? bookmark : bookmarkOutline} />
+                  </IonButton>
+                </IonItem>
               ))
             )}
           </IonList>
+        ) : (
+          <IonGrid>
+            <IonRow>
+              {softwareList.length === 0 ? (
+                <p className="no-results">無符合結果</p>
+              ) : (
+                softwareList.map(software => (
+                  <IonCol size="12" sizeMd="6" sizeLg="4" key={software.name}>
+                    <IonCard onClick={() => history.push(`/software/${software.name}`)}>
+                      <IonCardHeader>
+                        <IonCardTitle>{software.name}</IonCardTitle>
+                      </IonCardHeader>
+                      <IonCardContent>
+                        <p>{software.description}</p>
+                        <div className="tags">
+                          <IonChip color="primary">{software.category}</IonChip>
+                          <IonChip color="secondary">{software.license}</IonChip>
+                        </div>
+                        <IonButton
+                          fill="clear"
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleBookmark(software);
+                          }}
+                        >
+                          <IonIcon icon={software.isBookmarked ? bookmark : bookmarkOutline} />
+                        </IonButton>
+                      </IonCardContent>
+                    </IonCard>
+                  </IonCol>
+                ))
+              )}
+            </IonRow>
+          </IonGrid>
+        )}
+        {hasNextPage && (
+          <IonButton
+            expand="block"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? '載入中...' : '載入更多'}
+          </IonButton>
         )}
       </IonContent>
     </IonPage>

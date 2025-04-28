@@ -13,6 +13,7 @@ import {
   HttpStatusCode,
   ApiException,
 } from '../config/api';
+import { Software, SoftwareListResponse } from '../types/software';
 
 class ApiService {
   private baseUrl: string;
@@ -134,23 +135,21 @@ class ApiService {
   }
 
   async addBookmark(itemId: number): Promise<BookmarkResponse> {
-    const response = await this.request<BookmarkResponse>(
+    return this.request<BookmarkResponse>(
       API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
       'POST',
       undefined,
       true
     );
-    return response;
   }
 
   async removeBookmark(itemId: number): Promise<BookmarkResponse> {
-    const response = await this.request<BookmarkResponse>(
+    return this.request<BookmarkResponse>(
       API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
       'DELETE',
       undefined,
       true
     );
-    return response;
   }
 
   async toggleBookmark(itemId: number): Promise<BookmarkResponse> {
@@ -165,25 +164,35 @@ class ApiService {
   }
 
   // Software endpoints
-  async getSoftwareList(params?: PaginationParams): Promise<PaginatedResponse<SoftwareItem>> {
-    const queryParams = {
-      page: params?.page || API_CONFIG.DEFAULT_PAGINATION.page,
-      limit: Math.min(
-        params?.limit || API_CONFIG.DEFAULT_PAGINATION.limit,
-        API_CONFIG.DEFAULT_PAGINATION.maxLimit
-      ),
-      search: params?.search,
-      category: params?.category,
-      sort: params?.sort,
-      order: params?.order,
-    };
+  async getSoftwareList(params: {
+    page?: number;
+    search?: string;
+    categories?: string[];
+    sortBy?: string;
+    sortDirection?: boolean;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<SoftwareListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.categories?.length) queryParams.append('categories', params.categories.join(','));
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.sortDirection !== undefined) queryParams.append('sortDirection', params.sortDirection.toString());
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
 
-    const queryString = this.buildQueryString(queryParams);
-    return this.request(`${API_CONFIG.ENDPOINTS.SOFTWARE.LIST}${queryString}`);
+    return this.request<SoftwareListResponse>(
+      `${API_CONFIG.ENDPOINTS.SOFTWARE.LIST}?${queryParams.toString()}`,
+      'GET'
+    );
   }
 
-  async getSoftwareDetail(id: string): Promise<SoftwareItem> {
-    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.DETAIL(id));
+  async getSoftwareDetail(name: string): Promise<Software> {
+    return this.request<Software>(
+      API_CONFIG.ENDPOINTS.SOFTWARE.DETAIL(name),
+      'GET'
+    );
   }
 
   async createSoftware(data: Omit<SoftwareItem, 'id'>): Promise<SoftwareItem> {
@@ -196,6 +205,15 @@ class ApiService {
 
   async deleteSoftware(id: string): Promise<void> {
     return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.DELETE(id), 'DELETE', undefined, true);
+  }
+
+  async toggleBookmark(name: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl}/software/${name}/bookmark`, {
+      method: 'POST',
+    });
+    if (!response.ok) {
+      throw new Error('書籤操作失敗');
+    }
   }
 }
 

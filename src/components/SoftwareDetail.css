@@ -1,0 +1,66 @@
+.software-detail {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 20px;
+  font-size: 1.2em;
+}
+
+.error {
+  color: var(--ion-color-danger);
+}
+
+.software-icon {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.description {
+  margin: 16px 0;
+  line-height: 1.6;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  margin-top: 24px;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .software-detail {
+    padding: 10px;
+  }
+
+  .software-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .description {
+    font-size: 0.9em;
+  }
+}

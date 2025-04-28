@@ -1,52 +1,30 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import {
-  IonApp,
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonFooter,
-  IonButton,
-  IonIcon,
-} from '@ionic/react';
-import { home, list, settings } from 'ionicons/icons';
+import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { IonReactRouter } from '@ionic/react-router';
+import { Route, Redirect } from 'react-router-dom';
 import SoftwareList from './components/SoftwareList';
+import SoftwareDetail from './components/SoftwareDetail';
+import Login from './components/Login';
+import Register from './components/Register';
+import { useAuthStore } from './store/auth';
 import './App.css';
 
 const App: React.FC = () => {
+  const { isAuthenticated } = useAuthStore();
+
   return (
     <IonApp>
-      <Router>
-        <IonHeader>
-          <IonToolbar color="primary">
-            <IonTitle>開源軟體清單</IonTitle>
-          </IonToolbar>
-        </IonHeader>
-
-        <IonContent className="ion-padding">
-          <Routes>
-            <Route path="/" element={<SoftwareList />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </IonContent>
-
-        <IonFooter>
-          <IonToolbar>
-            <div className="footer-buttons">
-              <IonButton fill="clear">
-                <IonIcon slot="icon-only" icon={home} />
-              </IonButton>
-              <IonButton fill="clear">
-                <IonIcon slot="icon-only" icon={list} />
-              </IonButton>
-              <IonButton fill="clear">
-                <IonIcon slot="icon-only" icon={settings} />
-              </IonButton>
-            </div>
-          </IonToolbar>
-        </IonFooter>
-      </Router>
+      <IonReactRouter>
+        <IonRouterOutlet>
+          <Route exact path="/login" component={Login} />
+          <Route exact path="/register" component={Register} />
+          <Route exact path="/software" component={SoftwareList} />
+          <Route exact path="/software/:id" component={SoftwareDetail} />
+          <Route exact path="/">
+            <Redirect to="/software" />
+          </Route>
+        </IonRouterOutlet>
+      </IonReactRouter>
     </IonApp>
   );
 };

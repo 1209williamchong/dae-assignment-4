@@ -56,6 +56,10 @@ export interface BookmarksResponse {
 export const API_CONFIG = {
   BASE_URL: 'https://dae-mobile-assignment.hkit.cc/api',
   ENDPOINTS: {
+    SOFTWARE: {
+      LIST: '/software',
+      DETAIL: (name: string) => `/software/${name}`,
+    },
     AUTH: {
       SIGNUP: '/auth/signup',
       LOGIN: '/auth/login',
@@ -65,22 +69,16 @@ export const API_CONFIG = {
       LIST: '/bookmarks',
       TOGGLE: (itemId: number) => `/bookmarks/${itemId}`,
     },
-    SOFTWARE: {
-      LIST: '/software',
-      DETAIL: (id: string) => `/software/${id}`,
-      CREATE: '/software',
-      UPDATE: (id: string) => `/software/${id}`,
-      DELETE: (id: string) => `/software/${id}`,
-    },
   },
   DEFAULT_HEADERS: {
     'Content-Type': 'application/json',
-    Accept: 'application/json',
   },
-  DEFAULT_PAGINATION: {
-    page: 1,
-    limit: 3,
-    maxLimit: 5,
+  ERROR_MESSAGES: {
+    400: '無效的請求',
+    401: '未授權',
+    403: '禁止訪問',
+    404: '找不到資源',
+    500: '伺服器錯誤',
   },
 };
 
@@ -88,3 +86,26 @@ import BookmarkList from './components/BookmarkList';
 
 // 在您的頁面中使用
 <BookmarkList />
+
+export interface ApiError {
+  error: string;
+}
+
+export enum HttpStatusCode {
+  BadRequest = 400,
+  Unauthorized = 401,
+  Forbidden = 403,
+  NotFound = 404,
+  InternalServerError = 500,
+}
+
+export class ApiException extends Error {
+  constructor(
+    public status: HttpStatusCode,
+    message: string,
+    public details?: any
+  ) {
+    super(message);
+    this.name = 'ApiException';
+  }
+}

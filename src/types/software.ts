@@ -1,13 +1,23 @@
 export interface Software {
   name: string;
-  version: string;
-  license: string;
-  category: string;
-  icon: string;
-  video: string;
   description: string;
-  tags: string[];
-  date: string;
+  version: string;
+  author: string;
+  license: string;
+  repository: string;
+  stars: number;
+  forks: number;
+  issues: number;
+  lastUpdated: string;
+  categories: string[];
+  isBookmarked: boolean;
+}
+
+export interface SoftwareListResponse {
+  items: Software[];
+  total: number;
+  page: number;
+  hasMore: boolean;
 }
 
 export interface SoftwareFilters {
@@ -16,15 +26,8 @@ export interface SoftwareFilters {
   exactMatch: boolean;
   view: 'list' | 'grid';
   categories: string[];
-  sortBy: 'name' | 'version';
+  sortBy: string;
   sortDirection: boolean;
   startDate: string;
   endDate: string;
-  activeCategoryTags: string[];
-  activeTags: string[];
-}
-
-export interface SoftwareListResponse {
-  items: Software[];
-  nextPage: number | null;
 }
