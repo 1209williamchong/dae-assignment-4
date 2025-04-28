@@ -1,74 +1,81 @@
-import { Software } from '../types/software';
+export interface Software {
+  name: string;
+  description: string;
+  categories: string[];
+  version: string;
+  lastUpdated: string;
+  stars: number;
+  forks: number;
+  issues: number;
+  license: string;
+  language: string;
+  url: string;
+}
 
 export const softwareData: Software[] = [
   {
-    name: 'React',
-    description: '用於構建用戶界面的 JavaScript 庫',
-    version: '18.2.0',
-    author: 'Facebook',
-    license: 'MIT',
-    repository: 'https://github.com/facebook/react',
-    stars: 210000,
-    forks: 44000,
-    issues: 1200,
-    lastUpdated: '2023-10-25',
-    categories: ['前端', 'JavaScript', 'UI'],
-    isBookmarked: false,
+    name: "Visual Studio Code",
+    description: "一個輕量級但功能強大的源代碼編輯器",
+    categories: ["編輯器", "開發工具"],
+    version: "1.85.0",
+    lastUpdated: "2024-01-15",
+    stars: 150000,
+    forks: 25000,
+    issues: 5000,
+    license: "MIT",
+    language: "TypeScript",
+    url: "https://github.com/microsoft/vscode"
   },
   {
-    name: 'Vue.js',
-    description: '漸進式 JavaScript 框架',
-    version: '3.3.0',
-    author: 'Evan You',
-    license: 'MIT',
-    repository: 'https://github.com/vuejs/vue',
-    stars: 204000,
-    forks: 34000,
-    issues: 500,
-    lastUpdated: '2023-10-20',
-    categories: ['前端', 'JavaScript', 'UI'],
-    isBookmarked: false,
-  },
-  {
-    name: 'Angular',
-    description: '一個基於 TypeScript 的開源 Web 應用框架',
-    version: '16.2.0',
-    author: 'Google',
-    license: 'MIT',
-    repository: 'https://github.com/angular/angular',
-    stars: 89000,
-    forks: 24000,
+    name: "Git",
+    description: "分散式版本控制系統",
+    categories: ["版本控制", "開發工具"],
+    version: "2.42.0",
+    lastUpdated: "2024-01-10",
+    stars: 50000,
+    forks: 15000,
     issues: 2000,
-    lastUpdated: '2023-10-15',
-    categories: ['前端', 'TypeScript', '框架'],
-    isBookmarked: false,
+    license: "GPL-2.0",
+    language: "C",
+    url: "https://github.com/git/git"
   },
   {
-    name: 'Node.js',
-    description: '基於 Chrome V8 引擎的 JavaScript 運行環境',
-    version: '20.8.0',
-    author: 'Ryan Dahl',
-    license: 'MIT',
-    repository: 'https://github.com/nodejs/node',
-    stars: 98000,
-    forks: 27000,
-    issues: 1500,
-    lastUpdated: '2023-10-10',
-    categories: ['後端', 'JavaScript', '運行環境'],
-    isBookmarked: false,
-  },
-  {
-    name: 'Django',
-    description: '高級 Python Web 框架',
-    version: '4.2.0',
-    author: 'Django Software Foundation',
-    license: 'BSD',
-    repository: 'https://github.com/django/django',
-    stars: 72000,
+    name: "Node.js",
+    description: "JavaScript 運行時環境",
+    categories: ["運行時", "開發工具"],
+    version: "20.11.0",
+    lastUpdated: "2024-01-05",
+    stars: 100000,
     forks: 30000,
-    issues: 800,
-    lastUpdated: '2023-10-05',
-    categories: ['後端', 'Python', '框架'],
-    isBookmarked: false,
+    issues: 4000,
+    license: "MIT",
+    language: "JavaScript",
+    url: "https://github.com/nodejs/node"
   },
+  {
+    name: "React",
+    description: "用於構建用戶界面的 JavaScript 庫",
+    categories: ["前端框架", "開發工具"],
+    version: "18.2.0",
+    lastUpdated: "2024-01-20",
+    stars: 200000,
+    forks: 40000,
+    issues: 6000,
+    license: "MIT",
+    language: "JavaScript",
+    url: "https://github.com/facebook/react"
+  },
+  {
+    name: "Docker",
+    description: "容器化平台",
+    categories: ["容器", "開發工具"],
+    version: "24.0.0",
+    lastUpdated: "2024-01-18",
+    stars: 70000,
+    forks: 20000,
+    issues: 3000,
+    license: "Apache-2.0",
+    language: "Go",
+    url: "https://github.com/docker/docker"
+  }
 ];
