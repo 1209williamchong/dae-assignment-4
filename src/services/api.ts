@@ -1,78 +1,202 @@
-import axios from 'axios';
-import type { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { ApiResponse, AuthResponse, LoginCredentials, OpenSourceProject, PaginatedResponse, RegisterCredentials } from '@/types/api';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import {
+  API_CONFIG,
+  PaginationParams,
+  PaginatedResponse,
+  SoftwareItem,
+  AuthCredentials,
+  AuthResponse,
+  CheckAuthResponse,
+  BookmarkResponse,
+  BookmarksResponse,
+  BookmarkMessage,
+  ApiError,
+  HttpStatusCode,
+  ApiException,
+} from '../config/api';
 
 class ApiService {
-  private api: AxiosInstance;
+  private baseUrl: string;
+  private defaultHeaders: Record<string, string>;
+  private token: string | null = null;
 
   constructor() {
-    this.api = axios.create({
-      baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    this.baseUrl = API_CONFIG.BASE_URL;
+    this.defaultHeaders = API_CONFIG.DEFAULT_HEADERS;
+    this.token = localStorage.getItem('token');
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    return this.token
+      ? { ...this.defaultHeaders, Authorization: `Bearer ${this.token}` }
+      : this.defaultHeaders;
+  }
+
+  private buildQueryString(params: Record<string, any>): string {
+    const queryParams = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
     });
 
-    // 添加請求攔截器
-    this.api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
+    return queryParams.toString() ? `?${queryParams.toString()}` : '';
+  }
 
-    // 添加響應攔截器
-    this.api.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
+  private async handleError(response: Response): Promise<never> {
+    const status = response.status as HttpStatusCode;
+    let errorMessage = API_CONFIG.ERROR_MESSAGES[status] || '未知錯誤';
+
+    try {
+      const errorData: ApiError = await response.json();
+      errorMessage = errorData.error || errorMessage;
+    } catch {
+      // 如果無法解析 JSON，使用默認錯誤消息
+    }
+
+    if (status === HttpStatusCode.Unauthorized) {
+      this.token = null;
+      localStorage.removeItem('token');
+    }
+
+    throw new ApiException(status, errorMessage);
+  }
+
+  private async request<T>(
+    endpoint: string,
+    method: string = 'GET',
+    data?: any,
+    requiresAuth: boolean = false
+  ): Promise<T> {
+    const headers = requiresAuth ? this.getAuthHeaders() : this.defaultHeaders;
+
+    const options: RequestInit = {
+      method,
+      headers,
+    };
+
+    if (data) {
+      options.body = JSON.stringify(data);
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, options);
+
+      if (!response.ok) {
+        return this.handleError(response);
       }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof ApiException) {
+        throw error;
+      }
+      console.error('API request failed:', error);
+      throw new ApiException(HttpStatusCode.InternalServerError, '請求失敗，請稍後再試');
+    }
+  }
+
+  // Auth endpoints
+  async signup(credentials: AuthCredentials): Promise<AuthResponse> {
+    const response = await this.request<AuthResponse>(
+      API_CONFIG.ENDPOINTS.AUTH.SIGNUP,
+      'POST',
+      credentials
+    );
+    this.token = response.token;
+    localStorage.setItem('token', response.token);
+    return response;
+  }
+
+  async login(credentials: AuthCredentials): Promise<AuthResponse> {
+    const response = await this.request<AuthResponse>(
+      API_CONFIG.ENDPOINTS.AUTH.LOGIN,
+      'POST',
+      credentials
+    );
+    this.token = response.token;
+    localStorage.setItem('token', response.token);
+    return response;
+  }
+
+  async checkAuth(): Promise<CheckAuthResponse> {
+    return this.request<CheckAuthResponse>(API_CONFIG.ENDPOINTS.AUTH.CHECK, 'GET', undefined, true);
+  }
+
+  // Bookmark endpoints
+  async getBookmarks(): Promise<BookmarksResponse> {
+    return this.request<BookmarksResponse>(
+      API_CONFIG.ENDPOINTS.BOOKMARKS.LIST,
+      'GET',
+      undefined,
+      true
     );
   }
 
-  // 認證相關
-  async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
-    const response = await this.api.post('/auth/login', credentials);
-    return response.data;
+  async addBookmark(itemId: number): Promise<BookmarkResponse> {
+    const response = await this.request<BookmarkResponse>(
+      API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
+      'POST',
+      undefined,
+      true
+    );
+    return response;
   }
 
-  async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
-    const response = await this.api.post('/auth/register', credentials);
-    return response.data;
+  async removeBookmark(itemId: number): Promise<BookmarkResponse> {
+    const response = await this.request<BookmarkResponse>(
+      API_CONFIG.ENDPOINTS.BOOKMARKS.TOGGLE(itemId),
+      'DELETE',
+      undefined,
+      true
+    );
+    return response;
   }
 
-  async logout(): Promise<void> {
-    localStorage.removeItem('token');
+  async toggleBookmark(itemId: number): Promise<BookmarkResponse> {
+    const bookmarks = await this.getBookmarks();
+    const isBookmarked = bookmarks.item_ids.includes(itemId);
+
+    if (isBookmarked) {
+      return this.removeBookmark(itemId);
+    } else {
+      return this.addBookmark(itemId);
+    }
   }
 
-  // 開源軟體相關
-  async getSoftwareList(page: number = 1, pageSize: number = 10): Promise<ApiResponse<PaginatedResponse<OpenSourceProject>>> {
-    const response = await this.api.get(`/software?page=${page}&pageSize=${pageSize}`);
-    return response.data;
+  // Software endpoints
+  async getSoftwareList(params?: PaginationParams): Promise<PaginatedResponse<SoftwareItem>> {
+    const queryParams = {
+      page: params?.page || API_CONFIG.DEFAULT_PAGINATION.page,
+      limit: Math.min(
+        params?.limit || API_CONFIG.DEFAULT_PAGINATION.limit,
+        API_CONFIG.DEFAULT_PAGINATION.maxLimit
+      ),
+      search: params?.search,
+      category: params?.category,
+      sort: params?.sort,
+      order: params?.order,
+    };
+
+    const queryString = this.buildQueryString(queryParams);
+    return this.request(`${API_CONFIG.ENDPOINTS.SOFTWARE.LIST}${queryString}`);
   }
 
-  async getSoftwareById(id: string): Promise<ApiResponse<OpenSourceProject>> {
-    const response = await this.api.get(`/software/${id}`);
-    return response.data;
+  async getSoftwareDetail(id: string): Promise<SoftwareItem> {
+    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.DETAIL(id));
   }
 
-  // 收藏相關
-  async toggleFavorite(softwareId: string): Promise<ApiResponse<{ isFavorite: boolean }>> {
-    const response = await this.api.post(`/software/${softwareId}/favorite`);
-    return response.data;
+  async createSoftware(data: Omit<SoftwareItem, 'id'>): Promise<SoftwareItem> {
+    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.CREATE, 'POST', data, true);
   }
 
-  async getFavorites(): Promise<ApiResponse<OpenSourceProject[]>> {
-    const response = await this.api.get('/software/favorites');
-    return response.data;
+  async updateSoftware(id: string, data: Partial<SoftwareItem>): Promise<SoftwareItem> {
+    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.UPDATE(id), 'PUT', data, true);
+  }
+
+  async deleteSoftware(id: string): Promise<void> {
+    return this.request(API_CONFIG.ENDPOINTS.SOFTWARE.DELETE(id), 'DELETE', undefined, true);
   }
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();
