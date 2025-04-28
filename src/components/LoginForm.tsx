@@ -12,21 +12,20 @@ import {
   IonText,
   IonLoading,
 } from '@ionic/react';
-import { useAuthStore } from '../stores/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginForm: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, signup, isLoading, error } = useAuthStore();
+  const { login, error, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const credentials = { username, password };
-    if (isLogin) {
-      await login(credentials);
-    } else {
-      await signup(credentials);
+    try {
+      await login(username, password);
+    } catch (err) {
+      // 錯誤已經在 login 函數中處理
     }
   };
 
