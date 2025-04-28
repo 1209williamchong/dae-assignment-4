@@ -1,29 +1,57 @@
-import React from 'react';
-import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { Redirect, Route } from 'react-router-dom';
+import {
+  IonApp,
+  IonIcon,
+  IonLabel,
+  IonRouterOutlet,
+  IonTabBar,
+  IonTabButton,
+  IonTabs,
+} from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { Route, Redirect } from 'react-router-dom';
+import { bookmarkOutline, listOutline, personOutline } from 'ionicons/icons';
 import SoftwareList from './components/SoftwareList';
-import SoftwareDetail from './components/SoftwareDetail';
-import Login from './components/Login';
-import Register from './components/Register';
-import { useAuthStore } from './store/auth';
-import './App.css';
+import LoginForm from './components/LoginForm';
+import { useAuthStore } from './stores/auth';
+import { useEffect } from 'react';
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <IonApp>
       <IonReactRouter>
-        <IonRouterOutlet>
-          <Route exact path="/login" component={Login} />
-          <Route exact path="/register" component={Register} />
-          <Route exact path="/software" component={SoftwareList} />
-          <Route exact path="/software/:id" component={SoftwareDetail} />
-          <Route exact path="/">
-            <Redirect to="/software" />
-          </Route>
-        </IonRouterOutlet>
+        <IonTabs>
+          <IonRouterOutlet>
+            <Route exact path="/software">
+              <SoftwareList />
+            </Route>
+            <Route exact path="/login">
+              <LoginForm />
+            </Route>
+            <Route exact path="/">
+              <Redirect to="/software" />
+            </Route>
+          </IonRouterOutlet>
+          <IonTabBar slot="bottom">
+            <IonTabButton tab="software" href="/software">
+              <IonIcon icon={listOutline} />
+              <IonLabel>軟體列表</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="bookmarks" href="/bookmarks">
+              <IonIcon icon={bookmarkOutline} />
+              <IonLabel>我的書籤</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="profile" href={isAuthenticated ? '/profile' : '/login'}>
+              <IonIcon icon={personOutline} />
+              <IonLabel>{isAuthenticated ? '個人資料' : '登入'}</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        </IonTabs>
       </IonReactRouter>
     </IonApp>
   );
