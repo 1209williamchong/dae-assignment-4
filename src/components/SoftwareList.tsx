@@ -20,7 +20,7 @@ import {
 } from '@ionic/react';
 import { bookmarkOutline, bookmark, star, gitBranch, alertCircle } from 'ionicons/icons';
 import { softwareData, Software } from '../data/softwareData';
-import { useAuthStore } from '../stores/auth';
+import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import './SoftwareList.css';
 
@@ -31,7 +31,7 @@ const SoftwareList: React.FC = () => {
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     filterSoftware();
