@@ -347,38 +347,18 @@ app.post('/api/login', async (req, res) => {
 
 // 獲取軟體列表
 app.get('/api/software', (req, res) => {
-  const { search, category, sort = 'title', order = 'asc' } = req.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
 
-  // 過濾資料
-  let filteredData = [...softwareData];
-
-  if (search) {
-    const searchTerm = search.toLowerCase();
-    filteredData = filteredData.filter(
-      item =>
-        item.title.toLowerCase().includes(searchTerm) ||
-        item.description.toLowerCase().includes(searchTerm)
-    );
-  }
-
-  if (category) {
-    filteredData = filteredData.filter(item => item.category === category);
-  }
-
-  // 排序
-  filteredData.sort((a, b) => {
-    const aValue = a[sort];
-    const bValue = b[sort];
-    if (order === 'asc') {
-      return aValue.localeCompare(bValue);
-    } else {
-      return bValue.localeCompare(aValue);
-    }
-  });
+  const paginatedSoftware = softwareData.slice(startIndex, endIndex);
 
   res.json({
-    items: filteredData,
-    total: filteredData.length,
+    items: paginatedSoftware,
+    total: softwareData.length,
+    page,
+    limit,
   });
 });
 

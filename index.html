@@ -129,6 +129,42 @@
         font-size: 0.9em;
         margin-top: 5px;
       }
+      .container {
+        position: relative;
+      }
+      .software-list {
+        overflow-y: auto;
+        max-height: 400px;
+      }
+      .loading-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 1000;
+      }
+      .spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
@@ -157,11 +193,23 @@
       </select>
     </div>
 
-    <div id="software-list"></div>
+    <div class="container">
+      <div class="software-list" id="softwareList">
+        <!-- 軟體列表將在這裡動態生成 -->
+      </div>
+      <div id="loadingIndicator" class="loading-indicator" style="display: none">
+        <div class="spinner"></div>
+        <p>載入中...</p>
+      </div>
+    </div>
 
     <script>
       let allSoftware = [];
       let userBookmarks = new Set();
+      let currentPage = 1;
+      const itemsPerPage = 10;
+      let isLoading = false;
+      let hasMoreData = true;
 
       // 檢查登入狀態
       function checkAuth() {
@@ -211,15 +259,16 @@
         window.location.href = 'login.html';
       });
 
-      async function fetchSoftware() {
+      async function fetchSoftware(page = 1) {
         try {
-          const response = await fetch('http://localhost:3000/api/software');
+          const response = await fetch(
+            `http://localhost:3000/api/software?page=${page}&limit=${itemsPerPage}`
+          );
           const data = await response.json();
-          allSoftware = data.items;
-          displaySoftware(allSoftware);
-          updateCategories(allSoftware);
+          return data;
         } catch (error) {
-          console.error('錯誤:', error);
+          console.error('Error fetching software:', error);
+          return [];
         }
       }
 
@@ -263,32 +312,27 @@
       }
 
       function displaySoftware(softwareList) {
-        const container = document.getElementById('software-list');
-        container.innerHTML = softwareList
-          .map(
-            software => `
-          <div class="software-card">
-            <img src="${software.imageUrl}" alt="${software.title}" />
-            <h2>${software.title}</h2>
+        const container = document.getElementById('softwareList');
+        const existingItems = container.querySelectorAll('.software-item').length;
+
+        softwareList.forEach((software, index) => {
+          const item = document.createElement('div');
+          item.className = 'software-item';
+          item.innerHTML = `
+            <h3>${software.name}</h3>
             <p>${software.description}</p>
-            <p>版本: ${software.version}</p>
-            <p>授權: ${software.license}</p>
-            <p>分類: ${software.category}</p>
-            <div class="tags">
-              ${software.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            <div class="categories">
+              ${software.categories
+                .map(category => `<span class="category">${category}</span>`)
+                .join('')}
             </div>
-            <div class="video-container">
-              <iframe src="${software.video}" allowfullscreen></iframe>
+            <div class="software-footer">
+              <span class="version">版本: ${software.version}</span>
+              <span class="last-updated">最後更新: ${software.lastUpdated}</span>
             </div>
-            <p class="date">更新日期: ${software.date}</p>
-            <button class="bookmark-button ${userBookmarks.has(software.id) ? 'bookmarked' : ''}" 
-                    onclick="toggleBookmark(${software.id})">
-              ${userBookmarks.has(software.id) ? '取消收藏' : '收藏'}
-            </button>
-          </div>
-        `
-          )
-          .join('');
+          `;
+          container.appendChild(item);
+        });
       }
 
       // 搜尋功能
@@ -329,9 +373,59 @@
         displaySoftware(filteredSoftware);
       });
 
+      function showLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'flex';
+      }
+
+      function hideLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'none';
+      }
+
+      async function loadMoreSoftware() {
+        if (isLoading || !hasMoreData) return;
+
+        isLoading = true;
+        showLoading();
+
+        try {
+          const newSoftware = await fetchSoftware(currentPage);
+          if (newSoftware.length === 0) {
+            hasMoreData = false;
+          } else {
+            displaySoftware(newSoftware);
+            currentPage++;
+          }
+        } catch (error) {
+          console.error('Error loading more software:', error);
+        } finally {
+          isLoading = false;
+          hideLoading();
+        }
+      }
+
+      function handleScroll() {
+        const container = document.getElementById('softwareList');
+        const scrollHeight = container.scrollHeight;
+        const scrollTop = container.scrollTop;
+        const clientHeight = container.clientHeight;
+
+        if (scrollHeight - scrollTop <= clientHeight + 100) {
+          loadMoreSoftware();
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const container = document.getElementById('softwareList');
+        container.addEventListener('scroll', handleScroll);
+
+        // 初始載入
+        await loadMoreSoftware();
+      });
+
       // 頁面載入時檢查登入狀態並獲取軟體列表
       checkAuth();
-      fetchSoftware();
     </script>
   </body>
 </html>
