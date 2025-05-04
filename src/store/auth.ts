@@ -1,29 +1,35 @@
 import { create } from 'zustand';
-import { api } from '../services/api';
+import { apiService } from '../services/api';
 
 interface AuthState {
-  token: string | null;
   isAuthenticated: boolean;
+  user: any | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>(set => ({
-  token: localStorage.getItem('token'),
-  isAuthenticated: !!localStorage.getItem('token'),
+  isAuthenticated: false,
+  user: null,
+
   login: async (email: string, password: string) => {
-    const response = await api.login(email, password);
-    localStorage.setItem('token', response.token);
-    set({ token: response.token, isAuthenticated: true });
+    try {
+      const response = await apiService.login(email, password);
+      localStorage.setItem('token', response.token);
+      set({
+        isAuthenticated: true,
+        user: response.user,
+      });
+    } catch (error) {
+      throw error;
+    }
   },
-  register: async (email: string, password: string) => {
-    const response = await api.register(email, password);
-    localStorage.setItem('token', response.token);
-    set({ token: response.token, isAuthenticated: true });
-  },
+
   logout: () => {
     localStorage.removeItem('token');
-    set({ token: null, isAuthenticated: false });
+    set({
+      isAuthenticated: false,
+      user: null,
+    });
   },
 }));

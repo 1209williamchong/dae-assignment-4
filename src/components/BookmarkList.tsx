@@ -4,59 +4,44 @@ import { bookmark, trash } from 'ionicons/icons';
 import { apiService } from '../services/api';
 import { ApiException, HttpStatusCode } from '../config/api';
 
+interface Bookmark {
+  id: string;
+  title: string;
+  description: string;
+}
+
 const BookmarkList: React.FC = () => {
-  const [bookmarks, setBookmarks] = useState<number[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchBookmarks = async () => {
     try {
-      setLoading(true);
-      setError(null);
       const response = await apiService.getBookmarks();
       setBookmarks(response.item_ids);
-    } catch (error) {
-      if (error instanceof ApiException) {
-        switch (error.status) {
-          case HttpStatusCode.Unauthorized:
-            setError('請先登入以查看收藏列表');
-            break;
-          case HttpStatusCode.Forbidden:
-            setError('您沒有權限訪問此資源');
-            break;
-          default:
-            setError(error.message);
-        }
-      } else {
-        setError('獲取收藏列表時發生錯誤');
-      }
-    } finally {
+      setLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '獲取書籤失敗');
       setLoading(false);
     }
   };
 
-  const handleToggleBookmark = async (itemId: number) => {
+  const handleToggleBookmark = async (itemId: string) => {
     try {
-      setLoading(true);
-      setError(null);
       const response = await apiService.toggleBookmark(itemId);
       console.log('收藏狀態更新:', response.message);
-      // 重新獲取收藏列表
-      await fetchBookmarks();
-    } catch (error) {
-      if (error instanceof ApiException) {
-        setError(error.message);
-      } else {
-        setError('更新收藏狀態時發生錯誤');
-      }
-    } finally {
-      setLoading(false);
+      fetchBookmarks(); // 重新獲取書籤列表
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '更新書籤失敗');
     }
   };
 
   useEffect(() => {
     fetchBookmarks();
   }, []);
+
+  if (loading) return <div>載入中...</div>;
+  if (error) return <div>錯誤：{error}</div>;
 
   return (
     <>

@@ -1,33 +1,45 @@
 export interface Software {
+  id: string;
   name: string;
   description: string;
+  category: string;
+  license: string;
   version: string;
   author: string;
-  license: string;
   repository: string;
+  website: string;
   stars: number;
   forks: number;
-  issues: number;
-  lastUpdated: string;
-  categories: string[];
+  downloads: number;
+  createdAt: string;
+  updatedAt: string;
+  tags: string[];
+  dependencies: string[];
+  screenshots: string[];
+  documentation: string;
+  isOpenSource: boolean;
+  isVerified: boolean;
   isBookmarked: boolean;
+  icon?: string;
+  video?: string;
 }
 
 export interface SoftwareListResponse {
   items: Software[];
-  total: number;
-  page: number;
   hasMore: boolean;
+  total: number;
 }
 
-export interface SoftwareFilters {
-  search: string;
-  searchFields: string[];
-  exactMatch: boolean;
-  view: 'list' | 'grid';
-  categories: string[];
-  sortBy: string;
-  sortDirection: boolean;
-  startDate: string;
-  endDate: string;
+export interface SoftwareSearchParams {
+  page?: number;
+  limit?: number;
+  query?: string;
+  category?: string;
+  license?: string;
+  minStars?: number;
+  minDownloads?: number;
+  isOpenSource?: boolean;
+  isVerified?: boolean;
+  sortBy?: 'stars' | 'downloads' | 'updated' | 'created';
+  sortOrder?: 'asc' | 'desc';
 }

@@ -1,51 +1,49 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>註冊 - 開源軟體清單</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <script type="module" src="js/register.js"></script>
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script type="module" src="src/pages/Login.tsx"></script>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>開源軟體清單</h1>
-            <nav>
-                <a href="index.html">首頁</a>
-                <a href="login.html">登入</a>
-            </nav>
-        </header>
+      <header>
+        <h1>開源軟體清單</h1>
+        <nav>
+          <a href="index.html">首頁</a>
+          <a href="login.html">登入</a>
+        </nav>
+      </header>
 
-        <main>
-            <div class="auth-container">
-                <div class="register-form">
-                    <h2>註冊</h2>
-                    <form id="registerForm">
-                        <div class="form-group">
-                            <label for="registerEmail">電子郵件</label>
-                            <input type="email" id="registerEmail" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="registerPassword">密碼</label>
-                            <input type="password" id="registerPassword" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="confirmPassword">確認密碼</label>
-                            <input type="password" id="confirmPassword" required>
-                        </div>
-                        <button type="submit">註冊</button>
-                    </form>
-                    <p class="auth-link">
-                        已有帳號？<a href="login.html">立即登入</a>
-                    </p>
-                </div>
-            </div>
-        </main>
+      <main>
+        <div class="auth-container">
+          <div class="register-form">
+            <h2>註冊</h2>
+            <form id="registerForm">
+              <div class="form-group">
+                <label for="registerEmail">電子郵件</label>
+                <input type="email" id="registerEmail" required />
+              </div>
+              <div class="form-group">
+                <label for="registerPassword">密碼</label>
+                <input type="password" id="registerPassword" required />
+              </div>
+              <div class="form-group">
+                <label for="confirmPassword">確認密碼</label>
+                <input type="password" id="confirmPassword" required />
+              </div>
+              <button type="submit">註冊</button>
+            </form>
+            <p class="auth-link">已有帳號？<a href="login.html">立即登入</a></p>
+          </div>
+        </div>
+      </main>
 
-        <footer>
-            <p>&copy; 2025 開源軟體清單</p>
-        </footer>
+      <footer>
+        <p>&copy; 2025 開源軟體清單</p>
+      </footer>
     </div>
-</body>
-</html> 
+  </body>
+</html>

@@ -58,7 +58,7 @@ export enum HttpStatusCode {
   Unauthorized = 401,
   Forbidden = 403,
   NotFound = 404,
-  InternalServerError = 500
+  InternalServerError = 500,
 }
 
 export const API_CONFIG = {
@@ -93,19 +93,19 @@ export const API_CONFIG = {
       PROFILE: '/auth/profile',
       REFRESH: '/auth/refresh',
       SIGNUP: '/auth/signup',
-      CHECK: '/auth/check'
+      CHECK: '/auth/check',
     },
     BOOKMARKS: {
       LIST: '/bookmarks',
       ADD: '/bookmarks/:item_id',
       REMOVE: '/bookmarks/:item_id',
-      TOGGLE: '/bookmarks/toggle'
+      TOGGLE: '/bookmarks/toggle',
     },
     COMMENTS: {
       LIST: '/software/:id/comments',
       CREATE: '/software/:id/comments',
       UPDATE: '/comments/:id',
-      DELETE: '/comments/:id'
+      DELETE: '/comments/:id',
     },
     RESOURCE: {
       LIST: '/{resource}',
@@ -118,32 +118,23 @@ export const API_CONFIG = {
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
-    INTERNAL_SERVER_ERROR: 500
+    INTERNAL_SERVER_ERROR: 500,
   },
   ERROR_MESSAGES: {
     [400]: '請求格式錯誤',
     [401]: '未授權訪問',
     [403]: '禁止訪問',
     [404]: '資源不存在',
-    [500]: '伺服器錯誤'
+    [500]: '伺服器錯誤',
   },
 };
-
-import BookmarkList from './components/BookmarkList';
-
-// 在您的頁面中使用
-<BookmarkList />
 
 export interface ApiError {
   error: string;
 }
 
 export class ApiException extends Error {
-  constructor(
-    public status: HttpStatusCode,
-    message: string,
-    public details?: any
-  ) {
+  constructor(public status: HttpStatusCode, message: string, public details?: any) {
     super(message);
     this.name = 'ApiException';
   }

@@ -1,33 +1,25 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { notification } from '../services/notification';
 
-export const Register: React.FC = () => {
+const Login: React.FC = () => {
   const history = useHistory();
   const [formData, setFormData] = useState({
-    username: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      setError('密碼不一致');
-      return;
-    }
-
     try {
-      await apiService.signup({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      });
-      history.push('/login');
+      await apiService.login(formData.email, formData.password);
+      notification.show('登入成功', { type: 'success' });
+      history.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '註冊失敗');
+      setError(err instanceof Error ? err.message : '登入失敗');
+      notification.show('登入失敗', { type: 'error' });
     }
   };
 
@@ -40,21 +32,10 @@ export const Register: React.FC = () => {
   };
 
   return (
-    <div className="register-container">
-      <h2>註冊</h2>
+    <div className="login-container">
+      <h2>登入</h2>
       {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="username">用戶名</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="login-form">
         <div className="form-group">
           <label htmlFor="email">電子郵件</label>
           <input
@@ -77,21 +58,10 @@ export const Register: React.FC = () => {
             required
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="confirmPassword">確認密碼</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit">註冊</button>
+        <button type="submit">登入</button>
       </form>
     </div>
   );
 };
 
-export default Register;
+export default Login;
