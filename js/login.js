@@ -1,20 +1,24 @@
 import { auth, error } from './api.js';
 
+console.log('login?');
+
 document.addEventListener('DOMContentLoaded', () => {
-    const loginForm = document.getElementById('login-form');
-    const errorMessage = document.getElementById('error-message');
+  console.log('login??');
 
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+  const loginForm = document.querySelector('.login-form');
+  const errorMessage = document.getElementById('error-message');
 
-        try {
-            await auth.login(username, password);
-            window.location.href = 'index.html';
-        } catch (err) {
-            error.show(err.error || '登入失敗');
-        }
-    });
-}); 
+  loginForm.addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const username = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    try {
+      await auth.login(username, password);
+      window.location.href = 'index.html';
+    } catch (err) {
+      error.show(err.error || '登入失敗');
+    }
+  });
+});
