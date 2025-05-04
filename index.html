@@ -1,69 +1,42 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>開源軟體列表</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-    />
+    <title>開源軟體清單</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script type="module" src="js/index.js"></script>
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>開源軟體列表</h1>
-        <div class="auth-buttons">
-          <button id="loginBtn">登入</button>
-          <button id="registerBtn">註冊</button>
-        </div>
+        <h1>開源軟體清單</h1>
+        <nav>
+          <a href="login.html">登入</a>
+          <a href="register.html">註冊</a>
+        </nav>
       </header>
 
-      <div class="search-container">
-        <input type="text" id="searchInput" placeholder="搜索軟體..." />
-        <select id="categoryFilter">
-          <option value="all">所有類別</option>
-          <option value="編輯器">編輯器</option>
-          <option value="開發工具">開發工具</option>
-          <option value="版本控制">版本控制</option>
-          <option value="運行時">運行時</option>
-        </select>
-      </div>
-
-      <div id="softwareList" class="software-list">
-        <!-- 軟體列表將在這裡動態生成 -->
-      </div>
+      <main>
+        <div class="welcome-container">
+          <h2>歡迎使用開源軟體清單</h2>
+          <p>這是一個收集和展示開源軟體的平台，您可以：</p>
+          <ul>
+            <li>瀏覽各種開源軟體</li>
+            <li>搜尋特定軟體</li>
+            <li>收藏喜歡的軟體</li>
+            <li>查看軟體詳細資訊</li>
+          </ul>
+          <div class="auth-buttons">
+            <a href="login.html" class="button">登入</a>
+            <a href="register.html" class="button">註冊</a>
+          </div>
+        </div>
+      </main>
+      
+      <footer>
+        <p>&copy; 2025 開源軟體清單</p>
+      </footer>
     </div>
-
-    <!-- 登入模態框 -->
-    <div id="loginModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>登入</h2>
-        <form id="loginForm">
-          <input type="text" placeholder="用戶名" required />
-          <input type="password" placeholder="密碼" required />
-          <button type="submit">登入</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- 註冊模態框 -->
-    <div id="registerModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>註冊</h2>
-        <form id="registerForm">
-          <input type="text" placeholder="用戶名" required />
-          <input type="email" placeholder="電子郵件" required />
-          <input type="password" placeholder="密碼" required />
-          <input type="password" placeholder="確認密碼" required />
-          <button type="submit">註冊</button>
-        </form>
-      </div>
-    </div>
-
-    <script src="script.js"></script>
   </body>
 </html>
