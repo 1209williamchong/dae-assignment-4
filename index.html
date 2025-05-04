@@ -5,161 +5,229 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>開源軟體清單</title>
     <style>
+      :root {
+        --primary-color: #2196f3;
+        --primary-dark: #1976d2;
+        --secondary-color: #4caf50;
+        --secondary-dark: #45a049;
+        --danger-color: #f44336;
+        --danger-dark: #d32f2f;
+        --warning-color: #ff9800;
+        --warning-dark: #f57c00;
+        --text-primary: #333;
+        --text-secondary: #666;
+        --background-primary: #f5f5f5;
+        --background-secondary: #ffffff;
+        --border-color: #e0e0e0;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+      }
+
       body {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Arial, sans-serif;
         max-width: 100%;
         margin: 0;
         padding: 10px;
-        background-color: #f5f5f5;
+        background-color: var(--background-primary);
+        color: var(--text-primary);
       }
+
       .header {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-bottom: 15px;
-        padding: 10px;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        background-color: var(--background-secondary);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px var(--shadow-color);
+        transition: all 0.3s ease;
       }
+
+      .header:hover {
+        box-shadow: 0 6px 8px var(--shadow-color);
+      }
+
       .header h1 {
-        margin: 0 0 10px 0;
-        color: #333;
-        font-size: 20px;
+        margin: 0 0 15px 0;
+        color: var(--primary-color);
+        font-size: 24px;
+        font-weight: 600;
       }
+
       .auth-buttons {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
         justify-content: center;
       }
+
       .auth-button {
-        padding: 8px 15px;
+        padding: 10px 20px;
         border: none;
-        border-radius: 20px;
+        border-radius: 25px;
         cursor: pointer;
         text-decoration: none;
         color: white;
-        font-weight: bold;
-        transition: all 0.3s;
-        min-width: 80px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        min-width: 100px;
         text-align: center;
         font-size: 14px;
+        box-shadow: 0 2px 4px var(--shadow-color);
       }
+
+      .auth-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px var(--shadow-color);
+      }
+
       .login-button {
-        background-color: #4caf50;
+        background-color: var(--secondary-color);
       }
+
       .login-button:hover {
-        background-color: #45a049;
+        background-color: var(--secondary-dark);
       }
+
       .logout-button {
-        background-color: #f44336;
+        background-color: var(--danger-color);
       }
+
       .logout-button:hover {
-        background-color: #d32f2f;
+        background-color: var(--danger-dark);
       }
+
       .bookmarks-button {
-        background-color: #2196f3;
+        background-color: var(--primary-color);
       }
+
       .bookmarks-button:hover {
-        background-color: #1976d2;
+        background-color: var(--primary-dark);
       }
+
       .home-button {
-        background-color: #ff9800;
+        background-color: var(--warning-color);
       }
+
       .home-button:hover {
-        background-color: #f57c00;
+        background-color: var(--warning-dark);
       }
+
       .search-container {
         display: flex;
         flex-direction: column;
         gap: 8px;
         margin-bottom: 15px;
-        padding: 10px;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 12px;
+        background-color: var(--background-secondary);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px var(--shadow-color);
+        transition: all 0.3s ease;
       }
-      .search-input,
+
+      .search-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .search-input {
+        flex: 2;
+        min-width: 200px;
+      }
+
       .category-select,
       .sort-select,
       .order-select {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        font-size: 14px;
-        width: 100%;
-        box-sizing: border-box;
+        flex: 1;
+        min-width: 120px;
       }
+
       .show-bookmarks-only {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px;
-        background-color: #f8f9fa;
+        gap: 6px;
+        padding: 6px 10px;
+        background-color: var(--background-primary);
         border-radius: 20px;
-        margin-top: 8px;
-        font-size: 14px;
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+        white-space: nowrap;
       }
+
+      .show-bookmarks-only input[type='checkbox'] {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+      }
+
       .container {
         position: relative;
         height: calc(100vh - 200px);
         overflow: hidden;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background-color: var(--background-secondary);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px var(--shadow-color);
       }
+
       .software-list {
         height: 100%;
         overflow-y: auto;
-        padding: 10px;
-      }
-      .software-card {
-        border: 1px solid #ddd;
         padding: 15px;
-        margin-bottom: 10px;
-        border-radius: 8px;
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
+
+      .software-card {
+        border: 1px solid var(--border-color);
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        background-color: var(--background-secondary);
+        box-shadow: 0 2px 4px var(--shadow-color);
+        transition: all 0.3s ease;
+      }
+
+      .software-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px var(--shadow-color);
+      }
+
       .software-card img {
         max-width: 100%;
         height: auto;
         border-radius: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        max-height: 150px;
+        object-fit: contain;
       }
+
       .software-card h2 {
-        margin: 0 0 8px 0;
-        color: #333;
-        font-size: 18px;
+        margin: 0 0 10px 0;
+        color: var(--primary-color);
+        font-size: 20px;
+        font-weight: 600;
       }
+
       .software-card p {
-        margin: 4px 0;
-        color: #666;
-        line-height: 1.4;
+        margin: 8px 0;
+        color: var(--text-secondary);
+        line-height: 1.6;
         font-size: 14px;
       }
-      .tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin: 8px 0;
-      }
-      .tag {
-        background-color: #e9ecef;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        color: #495057;
-      }
+
       .video-container {
         position: relative;
         padding-bottom: 56.25%;
         height: 0;
         overflow: hidden;
-        margin: 10px 0;
-        border-radius: 8px;
+        margin: 15px 0;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+        background-color: #000;
       }
+
       .video-container iframe {
         position: absolute;
         top: 0;
@@ -167,54 +235,80 @@
         width: 100%;
         height: 100%;
         border: 0;
-        border-radius: 8px;
+        border-radius: 12px;
+        background-color: #000;
       }
+
+      .video-placeholder {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #000;
+        color: white;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+
       .bookmark-button {
         width: 100%;
-        padding: 8px;
+        padding: 12px;
         border: none;
-        border-radius: 20px;
-        background-color: #2196f3;
+        border-radius: 25px;
+        background-color: var(--primary-color);
         color: white;
-        font-weight: bold;
+        font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s;
-        margin-top: 10px;
+        transition: all 0.3s ease;
+        margin-top: 15px;
         font-size: 14px;
+        box-shadow: 0 2px 4px var(--shadow-color);
       }
+
       .bookmark-button:hover {
-        background-color: #1976d2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px var(--shadow-color);
       }
+
       .bookmark-button.bookmarked {
-        background-color: #f44336;
+        background-color: var(--danger-color);
       }
+
       .bookmark-button.bookmarked:hover {
-        background-color: #d32f2f;
+        background-color: var(--danger-dark);
       }
+
       .loading-indicator {
         position: fixed;
-        bottom: 15px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         background-color: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 8px 15px;
-        border-radius: 20px;
+        padding: 12px 20px;
+        border-radius: 25px;
         display: none;
         z-index: 1000;
-        font-size: 12px;
+        font-size: 14px;
+        box-shadow: 0 4px 6px var(--shadow-color);
       }
+
       .spinner {
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-top: 2px solid white;
         border-radius: 50%;
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         animation: spin 1s linear infinite;
         display: inline-block;
-        margin-right: 8px;
+        margin-right: 10px;
         vertical-align: middle;
       }
+
       @keyframes spin {
         0% {
           transform: rotate(0deg);
@@ -226,47 +320,184 @@
 
       @media (min-width: 768px) {
         body {
-          padding: 15px;
+          padding: 20px;
           max-width: 1200px;
           margin: 0 auto;
         }
+
         .header {
           flex-direction: row;
           justify-content: space-between;
-          padding: 8px 15px;
+          padding: 15px 20px;
         }
+
         .header h1 {
           margin: 0;
+          font-size: 28px;
         }
+
         .search-container {
           flex-direction: row;
           flex-wrap: wrap;
-          padding: 8px 15px;
+          padding: 12px 15px;
         }
-        .search-input,
+
+        .search-row {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .search-input {
+          min-width: 250px;
+        }
+
         .category-select,
         .sort-select,
         .order-select {
-          width: auto;
-          flex: 1;
           min-width: 150px;
         }
+
         .show-bookmarks-only {
-          margin-top: 0;
+          margin-left: auto;
+          padding: 8px 12px;
         }
+
         .software-card {
           display: flex;
           flex-wrap: wrap;
-          padding: 12px;
+          padding: 20px;
         }
+
         .software-card img {
-          width: 150px;
-          margin-right: 15px;
+          width: 200px;
+          margin-right: 20px;
         }
+
         .software-card-content {
           flex: 1;
-          min-width: 250px;
+          min-width: 300px;
         }
+      }
+
+      .view-toggle {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 6px 10px;
+        background-color: var(--background-primary);
+        border-radius: 20px;
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .view-toggle button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+      }
+
+      .view-toggle button.active {
+        color: var(--primary-color);
+      }
+
+      .view-toggle button:hover {
+        color: var(--primary-dark);
+      }
+
+      .software-list {
+        height: 100%;
+        overflow-y: auto;
+        padding: 15px;
+      }
+
+      .software-list.grid-view {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+      }
+
+      .software-list.list-view .software-card {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .software-list.list-view .software-card img {
+        width: 150px;
+        margin-right: 15px;
+        margin-bottom: 0;
+      }
+
+      .software-list.list-view .software-card-content {
+        flex: 1;
+      }
+
+      .software-list.list-view .video-container {
+        max-width: 300px;
+      }
+
+      @media (max-width: 767px) {
+        .software-list.grid-view {
+          grid-template-columns: 1fr;
+        }
+
+        .software-list.list-view .software-card {
+          flex-direction: column;
+        }
+
+        .software-list.list-view .software-card img {
+          width: 100%;
+          margin-right: 0;
+          margin-bottom: 15px;
+        }
+
+        .software-list.list-view .video-container {
+          max-width: 100%;
+        }
+      }
+
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 8px 0;
+        padding: 8px;
+        background-color: var(--background-primary);
+        border-radius: 12px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background-color: var(--background-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .tag:hover {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      .tag.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+      }
+
+      .tag-count {
+        font-size: 10px;
+        opacity: 0.7;
       }
     </style>
   </head>
@@ -290,24 +521,65 @@
     </div>
 
     <div class="search-container">
-      <input type="text" class="search-input" placeholder="搜尋軟體..." id="searchInput" />
-      <select class="category-select" id="categorySelect">
-        <option value="">所有分類</option>
-      </select>
-      <select class="sort-select" id="sortSelect">
-        <option value="title">按名稱</option>
-        <option value="version">按版本</option>
-        <option value="date">按日期</option>
-        <option value="category">按分類</option>
-      </select>
-      <select class="order-select" id="orderSelect">
-        <option value="asc">升序</option>
-        <option value="desc">降序</option>
-      </select>
-      <label class="show-bookmarks-only">
-        <input type="checkbox" id="showBookmarksOnly" />
-        只顯示收藏項目
-      </label>
+      <div class="search-row">
+        <input type="text" class="search-input" placeholder="搜尋軟體..." id="searchInput" />
+        <select class="category-select" id="categorySelect">
+          <option value="">所有分類</option>
+        </select>
+        <select class="sort-select" id="sortSelect">
+          <option value="title">按名稱</option>
+          <option value="version">按版本</option>
+          <option value="date">按日期</option>
+          <option value="category">按分類</option>
+        </select>
+        <select class="order-select" id="orderSelect">
+          <option value="asc">升序</option>
+          <option value="desc">降序</option>
+        </select>
+      </div>
+      <div class="search-row">
+        <label class="show-bookmarks-only">
+          <input type="checkbox" id="showBookmarksOnly" />
+          只顯示收藏項目
+        </label>
+        <div class="view-toggle">
+          <button id="listViewBtn" class="active" title="列表視圖">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+          </button>
+          <button id="gridViewBtn" title="網格視圖">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="tags-container" id="tagsContainer">
+        <!-- 標籤將在這裡動態生成 -->
+      </div>
     </div>
 
     <div class="container">
@@ -324,9 +596,10 @@
       let allSoftware = [];
       let userBookmarks = new Set();
       let currentPage = 1;
-      const itemsPerPage = 10;
       let isLoading = false;
       let hasMoreData = true;
+      let selectedTags = new Set();
+      let allTags = new Set();
 
       // 檢查登入狀態
       function checkAuth() {
@@ -351,7 +624,13 @@
       async function fetchUserBookmarks() {
         try {
           const token = localStorage.getItem('token');
+          if (!token) {
+            console.log('未登入，無法獲取收藏列表');
+            return;
+          }
+
           const response = await fetch('http://localhost:3000/api/bookmarks', {
+            method: 'GET',
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -361,9 +640,11 @@
             const data = await response.json();
             userBookmarks = new Set(data.item_ids);
             displaySoftware(allSoftware);
+          } else {
+            console.error('獲取收藏列表失敗:', response.status);
           }
         } catch (error) {
-          console.error('獲取收藏失敗:', error);
+          console.error('獲取收藏列表時發生錯誤:', error);
         }
       }
 
@@ -435,26 +716,97 @@
               userBookmarks.delete(softwareId);
             }
             displaySoftware(allSoftware);
+          } else {
+            console.error('收藏操作失敗:', response.status);
           }
         } catch (error) {
-          console.error('操作失敗:', error);
+          console.error('收藏操作時發生錯誤:', error);
         }
       }
 
       function displaySoftware(softwareList) {
         const container = document.getElementById('softwareList');
+        container.innerHTML = ''; // 清空容器
 
         softwareList.forEach(software => {
           const item = document.createElement('div');
           item.className = 'software-card';
+
+          // 處理影片連結
+          let videoContent = '';
+          if (software.videoUrl) {
+            try {
+              // 嘗試解析 YouTube 連結
+              const videoId = extractYouTubeId(software.videoUrl);
+              console.log('Video URL:', software.videoUrl);
+              console.log('Extracted ID:', videoId);
+
+              if (videoId) {
+                videoContent = `
+                  <div class="video-container">
+                    <iframe 
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
+                      frameborder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowfullscreen>
+                    </iframe>
+                  </div>
+                `;
+              } else {
+                // 如果不是 YouTube 連結，嘗試直接嵌入
+                videoContent = `
+                  <div class="video-container">
+                    <iframe 
+                      width="100%"
+                      height="100%"
+                      src="${software.videoUrl}" 
+                      frameborder="0"
+                      allowfullscreen>
+                    </iframe>
+                  </div>
+                `;
+              }
+            } catch (error) {
+              console.error('Error processing video URL:', error);
+              videoContent = `
+                <div class="video-container">
+                  <div class="video-placeholder">
+                    無法載入影片
+                  </div>
+                </div>
+              `;
+            }
+          }
+
           item.innerHTML = `
-            <img src="${software.imageUrl}" alt="${software.title}" />
+            <img src="${software.imageUrl}" alt="${
+            software.title
+          }" onerror="this.src='https://via.placeholder.com/300x150?text=No+Image'" />
             <h2>${software.title}</h2>
             <p>${software.description}</p>
             <p>分類: ${software.category}</p>
-            <div class="video-container">
-              <iframe src="${software.videoUrl}" allowfullscreen></iframe>
-            </div>
+            ${
+              software.tags
+                ? `
+              <div class="tags">
+                ${software.tags
+                  .map(
+                    tag => `
+                  <span class="tag ${
+                    selectedTags.has(tag) ? 'active' : ''
+                  }" onclick="toggleTag('${tag}')">
+                    ${tag}
+                  </span>
+                `
+                  )
+                  .join('')}
+              </div>
+            `
+                : ''
+            }
+            ${videoContent}
             <button class="bookmark-button ${userBookmarks.has(software.id) ? 'bookmarked' : ''}" 
                     onclick="toggleBookmark(${software.id})">
               ${userBookmarks.has(software.id) ? '取消收藏' : '收藏'}
@@ -464,16 +816,104 @@
         });
       }
 
+      // 從 YouTube URL 提取影片 ID
+      function extractYouTubeId(url) {
+        if (!url) return null;
+
+        // 處理各種 YouTube URL 格式
+        const patterns = [
+          /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i,
+          /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/,
+          /youtube\.com\/embed\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/v\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/e\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/user\/.*#\w\/\w\/\w\/\w\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/\w*#\w\/\w\/\w\/\w\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/watch\?v=([^"&?\/\s]{11})/i,
+          /youtube\.com\/\?v=([^"&?\/\s]{11})/i,
+          /youtube\.com\/v\/([^"&?\/\s]{11})/i,
+          /youtube\.com\/embed\/([^"&?\/\s]{11})/i,
+          /youtu\.be\/([^"&?\/\s]{11})/i,
+        ];
+
+        for (const pattern of patterns) {
+          const match = url.match(pattern);
+          if (match && match[1]) {
+            return match[1];
+          }
+        }
+
+        return null;
+      }
+
+      // 載入更多軟體
+      async function loadMoreSoftware() {
+        if (isLoading || !hasMoreData) return;
+
+        isLoading = true;
+        showLoading();
+
+        try {
+          const token = localStorage.getItem('token');
+          const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+          const category = document.getElementById('categorySelect').value;
+          const sort = document.getElementById('sortSelect')?.value || 'title';
+          const order = document.getElementById('orderSelect')?.value || 'asc';
+          const showBookmarksOnly = document.getElementById('showBookmarksOnly').checked;
+          const tags = Array.from(selectedTags).join(',');
+
+          const headers = {
+            'Content-Type': 'application/json',
+          };
+
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+
+          const response = await fetch(
+            `http://localhost:3000/api/software?page=${currentPage}&limit=3&search=${searchTerm}&category=${category}&sort=${sort}&order=${order}&bookmarksOnly=${showBookmarksOnly}&tags=${tags}`,
+            { headers }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.items.length === 0) {
+              hasMoreData = false;
+            } else {
+              // 累積軟體資料
+              allSoftware = [...allSoftware, ...data.items];
+              updateCategories(allSoftware);
+              updateTags(allSoftware);
+              displaySoftware(allSoftware);
+              currentPage++;
+            }
+          } else {
+            console.error('載入軟體列表失敗:', response.status);
+          }
+        } catch (error) {
+          console.error('載入軟體列表時發生錯誤:', error);
+        } finally {
+          isLoading = false;
+          hideLoading();
+        }
+      }
+
+      function showLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'flex';
+      }
+
+      function hideLoading() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'none';
+      }
+
       // 搜尋功能
       document.getElementById('searchInput').addEventListener('input', e => {
         const searchTerm = e.target.value.toLowerCase();
         const category = document.getElementById('categorySelect').value;
 
-        // 清空當前列表
-        const container = document.getElementById('softwareList');
-        container.innerHTML = '';
-
-        // 重置分頁狀態
+        // 重置狀態
         currentPage = 1;
         hasMoreData = true;
         allSoftware = [];
@@ -487,11 +927,7 @@
         const category = e.target.value;
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-        // 清空當前列表
-        const container = document.getElementById('softwareList');
-        container.innerHTML = '';
-
-        // 重置分頁狀態
+        // 重置狀態
         currentPage = 1;
         hasMoreData = true;
         allSoftware = [];
@@ -502,73 +938,26 @@
 
       // 排序控制
       document.getElementById('sortSelect').addEventListener('change', () => {
-        const container = document.getElementById('softwareList');
-        container.innerHTML = '';
         currentPage = 1;
         hasMoreData = true;
+        allSoftware = [];
         loadMoreSoftware();
       });
 
       document.getElementById('orderSelect').addEventListener('change', () => {
-        const container = document.getElementById('softwareList');
-        container.innerHTML = '';
         currentPage = 1;
         hasMoreData = true;
+        allSoftware = [];
         loadMoreSoftware();
       });
 
       // 只顯示收藏項目的控制
       document.getElementById('showBookmarksOnly').addEventListener('change', () => {
-        const container = document.getElementById('softwareList');
-        container.innerHTML = '';
         currentPage = 1;
         hasMoreData = true;
+        allSoftware = [];
         loadMoreSoftware();
       });
-
-      function showLoading() {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        loadingIndicator.style.display = 'flex';
-      }
-
-      function hideLoading() {
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        loadingIndicator.style.display = 'none';
-      }
-
-      async function loadMoreSoftware() {
-        if (isLoading || !hasMoreData) return;
-
-        isLoading = true;
-        showLoading();
-
-        try {
-          const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-          const category = document.getElementById('categorySelect').value;
-          const sort = document.getElementById('sortSelect')?.value || 'title';
-          const order = document.getElementById('orderSelect')?.value || 'asc';
-          const showBookmarksOnly = document.getElementById('showBookmarksOnly').checked;
-
-          const response = await fetch(
-            `http://localhost:3000/api/software?page=${currentPage}&limit=3&search=${searchTerm}&category=${category}&sort=${sort}&order=${order}&bookmarksOnly=${showBookmarksOnly}`
-          );
-          const data = await response.json();
-
-          if (data.items.length === 0) {
-            hasMoreData = false;
-          } else {
-            // 更新分類選項
-            updateCategories(data.items);
-            displaySoftware(data.items);
-            currentPage++;
-          }
-        } catch (error) {
-          console.error('Error loading more software:', error);
-        } finally {
-          isLoading = false;
-          hideLoading();
-        }
-      }
 
       function handleScroll() {
         const container = document.getElementById('softwareList');
@@ -617,6 +1006,91 @@
         // 初始載入
         await loadMoreSoftware();
       });
+
+      // 視圖切換功能
+      const listViewBtn = document.getElementById('listViewBtn');
+      const gridViewBtn = document.getElementById('gridViewBtn');
+      const softwareList = document.getElementById('softwareList');
+
+      function setViewMode(mode) {
+        if (mode === 'list') {
+          softwareList.classList.remove('grid-view');
+          softwareList.classList.add('list-view');
+          listViewBtn.classList.add('active');
+          gridViewBtn.classList.remove('active');
+          localStorage.setItem('viewMode', 'list');
+        } else {
+          softwareList.classList.remove('list-view');
+          softwareList.classList.add('grid-view');
+          listViewBtn.classList.remove('active');
+          gridViewBtn.classList.add('active');
+          localStorage.setItem('viewMode', 'grid');
+        }
+      }
+
+      listViewBtn.addEventListener('click', () => setViewMode('list'));
+      gridViewBtn.addEventListener('click', () => setViewMode('grid'));
+
+      // 載入保存的視圖模式
+      const savedViewMode = localStorage.getItem('viewMode') || 'list';
+      setViewMode(savedViewMode);
+
+      // 更新標籤列表
+      function updateTags(softwareList) {
+        const tagsContainer = document.getElementById('tagsContainer');
+        const tagCounts = new Map();
+
+        // 統計每個標籤的出現次數
+        softwareList.forEach(software => {
+          if (software.tags) {
+            software.tags.forEach(tag => {
+              tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+              allTags.add(tag);
+            });
+          }
+        });
+
+        // 清空現有標籤
+        tagsContainer.innerHTML = '';
+
+        // 添加標籤按鈕
+        Array.from(allTags)
+          .sort()
+          .forEach(tag => {
+            const count = tagCounts.get(tag) || 0;
+            const tagElement = document.createElement('span');
+            tagElement.className = `tag ${selectedTags.has(tag) ? 'active' : ''}`;
+            tagElement.innerHTML = `
+            ${tag}
+            <span class="tag-count">(${count})</span>
+          `;
+            tagElement.addEventListener('click', () => toggleTag(tag));
+            tagsContainer.appendChild(tagElement);
+          });
+      }
+
+      // 切換標籤選擇
+      function toggleTag(tag) {
+        if (selectedTags.has(tag)) {
+          selectedTags.delete(tag);
+        } else {
+          selectedTags.add(tag);
+        }
+
+        // 更新標籤按鈕狀態
+        const tagElements = document.querySelectorAll('.tag');
+        tagElements.forEach(element => {
+          if (element.textContent.trim().startsWith(tag)) {
+            element.classList.toggle('active', selectedTags.has(tag));
+          }
+        });
+
+        // 重新載入數據
+        currentPage = 1;
+        hasMoreData = true;
+        allSoftware = [];
+        loadMoreSoftware();
+      }
     </script>
   </body>
 </html>
