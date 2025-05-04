@@ -34,6 +34,7 @@ export interface SoftwareSearchParams {
   page?: number;
   limit?: number;
   query?: string;
+  search?: string;
   category?: string;
   license?: string;
   minStars?: number;
