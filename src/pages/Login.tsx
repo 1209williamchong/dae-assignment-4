@@ -16,7 +16,7 @@ const Login: React.FC = () => {
     try {
       await apiService.login(formData.email, formData.password);
       notification.show('登入成功', { type: 'success' });
-      history.push('/');
+      history.push('/software');
     } catch (err) {
       setError(err instanceof Error ? err.message : '登入失敗');
       notification.show('登入失敗', { type: 'error' });

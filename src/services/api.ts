@@ -166,3 +166,21 @@ export class ApiService {
 }
 
 export const apiService = new ApiService();
+
+const API_BASE_URL = 'http://localhost:3001/api';
+
+interface SoftwareResponse {
+  items: Software[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+export const fetchSoftwareList = async (
+  params: SoftwareSearchParams
+): Promise<SoftwareResponse> => {
+  const response = await axios.get<SoftwareResponse>(`${API_BASE_URL}/software`, { params });
+  return response.data;
+};

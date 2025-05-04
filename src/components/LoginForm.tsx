@@ -13,19 +13,21 @@ import {
   IonLoading,
 } from '@ionic/react';
 import { useAuth } from '../contexts/AuthContext';
+import { useHistory } from 'react-router-dom';
 
 const LoginForm: React.FC = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login, error, isLoading } = useAuth();
+  const history = useHistory();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await login(username, password);
+      history.push('/software');
     } catch (err) {
-      // 錯誤已經在 login 函數中處理
+      console.error('登入失敗:', err);
     }
   };
 
@@ -33,14 +35,20 @@ const LoginForm: React.FC = () => {
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>{isLogin ? '登入' : '註冊'}</IonTitle>
+          <IonTitle>登入</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent className="ion-padding">
         <form onSubmit={handleSubmit}>
+          {error && <IonText color="danger">{error}</IonText>}
           <IonItem>
             <IonLabel position="floating">用戶名</IonLabel>
-            <IonInput value={username} onIonChange={e => setUsername(e.detail.value!)} required />
+            <IonInput
+              type="text"
+              value={username}
+              onIonChange={e => setUsername(e.detail.value!)}
+              required
+            />
           </IonItem>
           <IonItem>
             <IonLabel position="floating">密碼</IonLabel>
@@ -51,12 +59,8 @@ const LoginForm: React.FC = () => {
               required
             />
           </IonItem>
-          {error && <IonText color="danger">{error}</IonText>}
-          <IonButton expand="block" type="submit" className="ion-margin-top">
-            {isLogin ? '登入' : '註冊'}
-          </IonButton>
-          <IonButton expand="block" fill="clear" onClick={() => setIsLogin(!isLogin)}>
-            {isLogin ? '切換到註冊' : '切換到登入'}
+          <IonButton expand="block" type="submit" className="ion-margin-top" disabled={isLoading}>
+            {isLoading ? '登入中...' : '登入'}
           </IonButton>
         </form>
         <IonLoading isOpen={isLoading} message="處理中..." />

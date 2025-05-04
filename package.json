@@ -1,46 +1,16 @@
 {
-  "name": "dae-assignment-4",
-  "private": true,
-  "version": "0.0.0",
+  "name": "dae-assignment-4-2",
+  "version": "1.0.0",
+  "description": "開源軟體清單網站",
+  "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsc -w",
-    "build": "tsc",
-    "start": "tsc && node dist/scripts/start.js",
-    "android": "ionic capacitor run android"
+    "start": "node server.js"
   },
   "dependencies": {
-    "@capacitor/android": "^7.2.0",
-    "@capacitor/core": "^7.2.0",
-    "@ionic/core": "^7.8.6",
-    "@ionic/react": "^7.8.6",
-    "@ionic/react-router": "^7.1.1",
-    "@tanstack/react-query": "^5.74.7",
-    "axios": "^1.9.0",
-    "chart.js": "^4.4.9",
-    "http-server": "^14.1.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^5.3.4",
-    "zustand": "^5.0.3"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.27.1",
-    "@babel/preset-react": "^7.27.1",
-    "@babel/preset-typescript": "^7.27.1",
-    "@types/http-server": "^0.12.0",
-    "@types/node": "^20.11.19",
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "babel-loader": "^10.0.0",
-    "eslint": "^8.55.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.5",
-    "typescript": "^5.2.2",
-    "webpack": "^5.99.7",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.1"
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
   }
 }

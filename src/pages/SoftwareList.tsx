@@ -24,138 +24,139 @@ import {
   IonDatetime,
   IonDatetimeButton,
   IonModal,
+  IonBadge,
+  IonSkeletonText,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
 } from '@ionic/react';
 import { star, starOutline } from 'ionicons/icons';
 import { Chart } from 'chart.js/auto';
+import { apiService } from '../services/api';
+import { notification } from '../services/notification';
+import { Software, SoftwareListResponse, SoftwareSearchParams } from '../types/software';
+import useProjectStore from '../store/projectStore';
 import './SoftwareList.css';
 
-interface Software {
-  name: string;
-  version: string;
-  license: string;
-  category: string;
-  icon: string;
-  video: string;
-  description: string;
-  tags: string[];
-  date: string;
-}
-
-const softwareData: Software[] = [
-  {
-    name: "Mozilla Firefox",
-    version: "125.0.1",
-    license: "Mozilla Public License 2.0",
-    category: "網頁瀏覽器",
-    icon: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/120px-Firefox_logo%2C_2019.svg.png",
-    video: "https://www.youtube.com/embed/lmeDvSgN6zY?si=xlXxFoMH45yjawIL",
-    description: "Mozilla Firefox 是一款快速、安全的開源網頁瀏覽器，支持眾多擴充功能。",
-    tags: ["瀏覽器", "網頁", "開源"],
-    date: "2025-04-01"
-  },
-  // ... 其他軟體數據
-];
-
 const SoftwareList: React.FC = () => {
+  const { software, loading, error, searchParams, setSearchParams, fetchSoftware } =
+    useProjectStore();
+  const [favorites, setFavorites] = useState<number[]>(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [searchFields, setSearchFields] = useState<string[]>(['name', 'description', 'tags']);
   const [exactMatch, setExactMatch] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['']);
-  const [sortBy, setSortBy] = useState('name');
-  const [sortDirection, setSortDirection] = useState(true);
+  const [sortBy, setSortBy] = useState<'stars' | 'downloads' | 'updated' | 'created'>('stars');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [activeCategoryTags, setActiveCategoryTags] = useState<string[]>([]);
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<Chart | null>(null);
 
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('softwareFavorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
-    setIsLoading(false);
-  }, []);
+    fetchSoftware();
+  }, [searchParams]);
 
   useEffect(() => {
-    if (!isLoading && chartRef.current) {
+    if (!loading && chartRef.current) {
       updateChart();
     }
-  }, [isLoading]);
+  }, [loading, software]);
 
   const updateChart = () => {
     if (!chartRef.current) return;
 
-    const categories = softwareData.reduce((acc, item) => {
+    const categories = software.reduce((acc, item) => {
       acc[item.category] = (acc[item.category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
     const labels = Object.keys(categories);
     const data = labels.map(label => categories[label]);
-    const backgroundColors = labels.map((_, i) => `hsl(${i * 36}, 70%, 50%)`);
 
     if (chartInstance.current) {
       chartInstance.current.destroy();
     }
 
     chartInstance.current = new Chart(chartRef.current, {
-      type: 'doughnut',
+      type: 'bar',
       data: {
         labels,
-        datasets: [{
-          data,
-          backgroundColor: backgroundColors,
-          borderWidth: 1
-        }]
+        datasets: [
+          {
+            label: '軟體數量',
+            data,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1,
+          },
+        ],
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              font: { size: 12 },
-              padding: 10
-            }
-          }
-        }
-      }
+        scales: {
+          y: {
+            beginAtZero: true,
+          },
+        },
+      },
     });
   };
 
-  const handleToggleFavorite = (name: string) => {
-    const newFavorites = favorites.includes(name)
-      ? favorites.filter(f => f !== name)
-      : [...favorites, name];
-    setFavorites(newFavorites);
-    localStorage.setItem('softwareFavorites', JSON.stringify(newFavorites));
+  const handleSearch = (value: string) => {
+    setSearchParams({ search: value, page: 1 });
   };
 
-  const filteredSoftware = softwareData.filter(software => {
-    const matchesSearch = searchTerm ? searchFields.some(field => {
-      const value = software[field as keyof Software]?.toString().toLowerCase() || '';
-      return exactMatch ? value === searchTerm.toLowerCase() : value.includes(searchTerm.toLowerCase());
-    }) : true;
+  const handleCategoryChange = (value: string) => {
+    setSearchParams({ category: value, page: 1 });
+  };
 
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(software.category) || 
-      (selectedCategories.includes('favorites') && favorites.includes(software.name));
+  const handleSortChange = (value: string) => {
+    setSearchParams({ sort: value, page: 1 });
+  };
 
-    const matchesCategoryTags = activeCategoryTags.length === 0 || 
-      activeCategoryTags.includes(software.category);
+  const handleLoadMore = () => {
+    setSearchParams({ page: searchParams.page! + 1 });
+  };
 
-    const matchesTags = activeCategoryTags.length === 0 || 
-      software.tags.some(tag => activeTags.includes(tag));
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev => {
+      const newFavorites = prev.includes(id) ? prev.filter(fid => fid !== id) : [...prev, id];
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      return newFavorites;
+    });
+  };
 
-    const softwareDate = new Date(software.date);
-    const matchesDate = (!startDate || softwareDate >= new Date(startDate)) &&
+  const filteredSoftware = software.filter(item => {
+    const matchesSearch = searchTerm
+      ? searchFields.some(field => {
+          const value = item[field as keyof Software]?.toString().toLowerCase() || '';
+          return exactMatch
+            ? value === searchTerm.toLowerCase()
+            : value.includes(searchTerm.toLowerCase());
+        })
+      : true;
+
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(item.category) ||
+      (selectedCategories.includes('favorites') && favorites.includes(item.id));
+
+    const matchesCategoryTags =
+      activeCategoryTags.length === 0 || activeCategoryTags.includes(item.category);
+
+    const matchesTags =
+      activeCategoryTags.length === 0 || item.tags.some(tag => activeTags.includes(tag));
+
+    const softwareDate = new Date(item.date);
+    const matchesDate =
+      (!startDate || softwareDate >= new Date(startDate)) &&
       (!endDate || softwareDate <= new Date(endDate));
 
     return matchesSearch && matchesCategory && matchesCategoryTags && matchesTags && matchesDate;
@@ -169,8 +170,8 @@ const SoftwareList: React.FC = () => {
         </IonToolbar>
         <IonToolbar>
           <IonSearchbar
-            value={searchTerm}
-            onIonInput={e => setSearchTerm(e.detail.value || '')}
+            value={searchParams.search}
+            onIonChange={e => handleSearch(e.detail.value!)}
             placeholder="搜尋軟體..."
             debounce={300}
             animated
@@ -204,7 +205,11 @@ const SoftwareList: React.FC = () => {
           </IonItem>
         </IonToolbar>
         <IonToolbar>
-          <IonSegment value={viewMode} onIonChange={e => setViewMode(e.detail.value as 'list' | 'grid')} className="custom-segment">
+          <IonSegment
+            value={viewMode}
+            onIonChange={e => setViewMode(e.detail.value as 'list' | 'grid')}
+            className="custom-segment"
+          >
             <IonSegmentButton value="list">
               <IonLabel>列表視圖</IonLabel>
             </IonSegmentButton>
@@ -216,62 +221,75 @@ const SoftwareList: React.FC = () => {
       </IonHeader>
       <IonContent className="ion-padding">
         <div className="chart-container">
-          {isLoading ? (
-            <div className="skeleton-chart" />
-          ) : (
-            <canvas ref={chartRef} />
-          )}
+          {loading ? <div className="skeleton-chart" /> : <canvas ref={chartRef} />}
         </div>
         <IonList className={`${viewMode}-view fade-toggle`}>
-          {filteredSoftware.length === 0 ? (
+          {loading ? (
+            Array(3)
+              .fill(null)
+              .map((_, i) => (
+                <IonCard key={`skeleton-${i}`}>
+                  <IonCardHeader>
+                    <IonSkeletonText animated style={{ width: '40%' }} />
+                    <IonSkeletonText animated style={{ width: '20%' }} />
+                  </IonCardHeader>
+                  <IonCardContent>
+                    <IonSkeletonText animated style={{ width: '60%' }} />
+                    <IonSkeletonText animated style={{ width: '80%' }} />
+                  </IonCardContent>
+                </IonCard>
+              ))
+          ) : filteredSoftware.length === 0 ? (
             <div className="no-results">
               <p>沒有找到符合條件的軟體</p>
             </div>
           ) : (
-            filteredSoftware.map(software => (
-              <IonCard key={software.name} className="custom-card">
+            filteredSoftware.map(item => (
+              <IonCard key={item.id} className="custom-card">
                 <IonCardHeader>
-                  <img 
-                    src={software.icon} 
-                    alt={`${software.name} 圖示`} 
+                  <img
+                    src={item.icon}
+                    alt={`${item.name} 圖示`}
                     className="software-icon"
-                    onError={(e) => {
+                    onError={e => {
                       const target = e.target as HTMLImageElement;
                       target.src = 'https://via.placeholder.com/48';
                     }}
                   />
                   <div className="software-details">
-                    <IonCardTitle>{software.name}</IonCardTitle>
-                    <IonCardSubtitle>版本：{software.version}</IonCardSubtitle>
-                    <IonCardSubtitle>授權：{software.license}</IonCardSubtitle>
+                    <IonCardTitle>{item.name}</IonCardTitle>
+                    <IonCardSubtitle>版本：{item.version}</IonCardSubtitle>
+                    <IonCardSubtitle>授權：{item.license}</IonCardSubtitle>
                   </div>
                   <IonIcon
-                    icon={favorites.includes(software.name) ? star : starOutline}
-                    className={`favorite-icon ${favorites.includes(software.name) ? 'favorited' : ''}`}
-                    onClick={() => handleToggleFavorite(software.name)}
+                    icon={favorites.includes(item.id) ? star : starOutline}
+                    className={`favorite-icon ${favorites.includes(item.id) ? 'favorited' : ''}`}
+                    onClick={() => toggleFavorite(item.id)}
                   />
                 </IonCardHeader>
                 <IonCardContent>
-                  <p>描述：{software.description}</p>
+                  <p>描述：{item.description}</p>
                   <p>
                     分類：
-                    <span 
-                      className={`category-tag ${activeCategoryTags.includes(software.category) ? 'selected' : ''}`}
+                    <span
+                      className={`category-tag ${
+                        activeCategoryTags.includes(item.category) ? 'selected' : ''
+                      }`}
                       onClick={() => {
-                        const newTags = activeCategoryTags.includes(software.category)
-                          ? activeCategoryTags.filter(tag => tag !== software.category)
-                          : [...activeCategoryTags, software.category];
+                        const newTags = activeCategoryTags.includes(item.category)
+                          ? activeCategoryTags.filter(tag => tag !== item.category)
+                          : [...activeCategoryTags, item.category];
                         setActiveCategoryTags(newTags);
                       }}
                     >
-                      {software.category}
+                      {item.category}
                     </span>
                   </p>
                   <p>
                     標籤：
-                    {software.tags.map(tag => (
-                      <span 
-                        key={tag} 
+                    {item.tags.map(tag => (
+                      <span
+                        key={tag}
                         className={`tag ${activeTags.includes(tag) ? 'selected' : ''}`}
                         onClick={() => {
                           const newTags = activeTags.includes(tag)
@@ -285,10 +303,10 @@ const SoftwareList: React.FC = () => {
                     ))}
                   </p>
                   <div className="video-container">
-                    {software.video ? (
+                    {item.video ? (
                       <iframe
-                        src={software.video}
-                        title={`${software.name} 示範影片`}
+                        src={item.video}
+                        title={`${item.name} 示範影片`}
                         frameBorder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
@@ -305,6 +323,10 @@ const SoftwareList: React.FC = () => {
             ))
           )}
         </IonList>
+
+        <IonInfiniteScroll onIonInfinite={handleLoadMore}>
+          <IonInfiniteScrollContent loadingText="載入更多..." />
+        </IonInfiniteScroll>
       </IonContent>
     </IonPage>
   );

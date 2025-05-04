@@ -1,5 +1,9 @@
 # 習作二：API 整合與資料同步 (手機網頁應用)
 
+## 專案簡介
+
+這是一個開源軟體資訊平台的手機網頁應用程式，提供使用者註冊、登入、瀏覽開源軟體資訊、收藏等功能。專案使用現代前端技術開發，支援響應式設計，可在各種行動裝置上使用。
+
 ## 學生資料
 
 - 姓名：莊偉倫
@@ -7,9 +11,74 @@
 - 主題編號：4
 - 主題名稱：開源軟體
 
-## 功能完成度自評
+## 技術架構
 
-（依照評分標準勾選完成的項目）
+### 前端技術
+
+- HTML5
+- CSS3
+- JavaScript (ES6+)
+- TypeScript
+- Capacitor (跨平台支援)
+
+### 主要功能
+
+1. 使用者認證系統
+
+   - 註冊/登入/登出
+   - 登入狀態管理
+   - 資料驗證
+
+2. 開源軟體資訊展示
+
+   - 列表展示
+   - 分頁載入
+   - 無限捲動
+   - 搜尋功能
+   - 分類過濾
+   - 排序功能
+
+3. 收藏功能
+   - 收藏/取消收藏
+   - 收藏狀態顯示
+   - 收藏項目管理
+
+## 安裝與使用
+
+### 環境需求
+
+- Node.js (v14 或以上)
+- npm 或 yarn
+- Git
+
+### 安裝步驟
+
+1. 克隆專案
+
+```bash
+git clone https://github.com/1209williamchong/dae-assignment-4.git
+cd dae-assignment-4
+```
+
+2. 安裝依賴
+
+```bash
+npm install
+```
+
+3. 啟動開發伺服器
+
+```bash
+npm start
+```
+
+4. 建置生產版本
+
+```bash
+npm run build
+```
+
+## 功能完成度自評
 
 ### 清單功能（30 分）
 
@@ -43,3 +112,25 @@
 - [x] 排序功能（5 分）
 - [x] 資料驗證（5 分）
 - [x] 只顯示已收藏項目（5 分）
+
+## 專案結構
+
+```
+dae-assignment-4/
+├── src/                # 原始碼目錄
+├── public/             # 靜態資源
+├── css/                # 樣式檔案
+├── android/            # Android 平台相關檔案
+├── .vscode/            # VS Code 設定
+├── package.json        # 專案依賴
+├── tsconfig.json       # TypeScript 設定
+└── capacitor.config.ts # Capacitor 設定
+```
+
+## 貢獻指南
+
+歡迎提交 Pull Request 或 Issue 來協助改進專案。
+
+## 授權
+
+MIT License
