@@ -1,0 +1,330 @@
+ion-card {
+  --border-radius: 12px;
+  margin: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: slideIn 0.3s ease-out;
+  background: var(--ion-card-background, #ffffff);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+ion-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+ion-card-header {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: linear-gradient(to right, var(--ion-color-light), var(--ion-color-light-tint));
+  border-radius: 12px 12px 0 0;
+}
+
+.software-icon {
+  width: 48px;
+  height: 48px;
+  margin-right: 12px;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.software-icon:hover {
+  transform: scale(1.05);
+}
+
+.favorite-icon {
+  font-size: 28px;
+  cursor: pointer;
+  margin-left: 12px;
+  transition: all 0.3s ease;
+  color: var(--ion-color-medium);
+}
+
+.favorite-icon.favorited {
+  color: var(--ion-color-warning);
+  animation: scaleIcon 0.3s ease;
+}
+
+.software-details {
+  flex-grow: 1;
+}
+
+.software-details ion-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--ion-color-dark);
+}
+
+.software-details ion-card-subtitle, .software-details p {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  margin: 3px 0;
+  line-height: 1.4;
+}
+
+.category-tag, .tag {
+  color: var(--ion-color-primary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
+  display: inline-block;
+  min-width: 48px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: var(--ion-color-light);
+  margin: 2px 4px;
+  font-weight: 500;
+}
+
+.category-tag:hover, .tag:hover {
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary);
+}
+
+.category-tag.selected, .tag.selected {
+  background: var(--ion-color-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.video-container {
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin: 8px;
+}
+
+.video-container iframe {
+  width: 100%;
+  max-width: 343px;
+  height: 180px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.video-error {
+  padding: 12px;
+  text-align: center;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin: 8px;
+}
+
+.video-error p {
+  margin: 0;
+  color: var(--ion-color-medium);
+}
+
+.no-results {
+  text-align: center;
+  padding: 24px;
+  color: var(--ion-color-medium);
+  font-size: 15px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  margin: 16px;
+}
+
+.chart-container {
+  height: 180px;
+  margin: 16px;
+  position: relative;
+  animation: scaleIn 0.5s ease-out;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.skeleton-chart {
+  width: 180px;
+  height: 180px;
+  background: var(--ion-color-light);
+  border-radius: 50%;
+  margin: 12px auto;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton-card {
+  margin: 12px;
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+  animation: pulse 1.5s infinite;
+}
+
+ion-list.list-view ion-card {
+  width: calc(100% - 24px);
+}
+
+ion-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+ion-list.grid-view ion-card {
+  margin: 0;
+  animation: slideIn 0.3s ease-out;
+}
+
+ion-segment, ion-button {
+  margin: 12px;
+}
+
+ion-searchbar {
+  --border-radius: 12px;
+  --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --background: var(--ion-color-light);
+  --placeholder-color: var(--ion-color-medium);
+  --color: var(--ion-color-dark);
+  margin: 12px;
+}
+
+ion-select {
+  --border-radius: 12px;
+  --background: var(--ion-color-light);
+  --padding-start: 12px;
+  --padding-end: 12px;
+}
+
+ion-toggle {
+  --background: var(--ion-color-light);
+  --background-checked: var(--ion-color-primary);
+  --handle-background: white;
+  --handle-background-checked: white;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeToggle {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIcon {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.6; }
+}
+
+@media (max-width: 375px) {
+  ion-card {
+    margin: 8px;
+    --border-radius: 8px;
+  }
+  
+  ion-card-header {
+    padding: 8px;
+  }
+  
+  .software-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+  }
+  
+  .favorite-icon {
+    font-size: 24px;
+    margin-left: 8px;
+  }
+  
+  .software-details ion-card-title {
+    font-size: 14px;
+  }
+  
+  .software-details ion-card-subtitle, .software-details p {
+    font-size: 12px;
+  }
+  
+  .video-container {
+    padding: 8px;
+    margin: 6px;
+  }
+  
+  .video-container iframe {
+    height: 160px;
+  }
+  
+  .category-tag, .tag {
+    padding: 3px 6px;
+    font-size: 11px;
+    min-width: 44px;
+    margin: 2px 3px;
+  }
+  
+  ion-list.grid-view {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .chart-container {
+    height: 160px;
+    margin: 12px;
+    padding: 8px;
+  }
+  
+  .skeleton-chart {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+ion-content {
+  --padding-bottom: 120px;
+  --background: var(--ion-color-light-tint);
+}
+
+.fade-toggle {
+  animation: fadeToggle 0.2s ease-in-out;
+}
+
+/* 暗色主題支持 */
+@media (prefers-color-scheme: dark) {
+  ion-card {
+    --ion-card-background: var(--ion-color-dark);
+    border-color: rgba(255,255,255,0.1);
+  }
+  
+  .software-details ion-card-title {
+    color: var(--ion-color-light);
+  }
+  
+  .software-details ion-card-subtitle, .software-details p {
+    color: var(--ion-color-medium);
+  }
+  
+  ion-searchbar {
+    --background: var(--ion-color-dark);
+    --color: var(--ion-color-light);
+  }
+  
+  ion-select {
+    --background: var(--ion-color-dark);
+  }
+  
+  ion-toggle {
+    --background: var(--ion-color-dark);
+  }
+} 
