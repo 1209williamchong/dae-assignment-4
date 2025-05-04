@@ -14,7 +14,10 @@
             <nav>
                 <a href="index.html">首頁</a>
                 <a href="software.html">軟體列表</a>
-                <button id="logoutBtn">登出</button>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn">登出</button>
+                </div>
             </nav>
         </header>
         
@@ -45,9 +48,18 @@
                 <!-- 收藏列表將在這裡動態生成 -->
             </div>
             
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>載入中...</p>
+            </div>
+
             <div class="no-bookmarks" id="noBookmarksMessage">
                 <p>您還沒有收藏任何軟體</p>
                 <a href="software.html" class="button">瀏覽軟體</a>
+            </div>
+
+            <div class="no-results" id="noResultsMessage">
+                <p>沒有找到符合條件的收藏</p>
             </div>
         </main>
         

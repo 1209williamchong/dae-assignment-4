@@ -14,7 +14,10 @@
             <nav>
                 <a href="index.html">首頁</a>
                 <a href="bookmarks.html">我的收藏</a>
-                <button id="logoutBtn">登出</button>
+                <div class="user-info">
+                    <span id="userEmail"></span>
+                    <button id="logoutBtn">登出</button>
+                </div>
             </nav>
         </header>
         
@@ -54,6 +57,10 @@
             <div class="loading" id="loadingIndicator">
                 <div class="spinner"></div>
                 <p>載入中...</p>
+            </div>
+
+            <div class="no-results" id="noResultsMessage">
+                <p>沒有找到符合條件的軟體</p>
             </div>
         </main>
         
