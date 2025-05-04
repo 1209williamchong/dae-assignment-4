@@ -1,4 +1,12 @@
-import { softwareData } from './data.js';
+import { software, loading, error } from './api.js';
+
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
+let currentCategory = '';
+let currentSearch = '';
+let currentSort = 'name';
+let currentOrder = 'asc';
 
 // 檢查用戶是否已登入
 const checkAuth = () => {
@@ -12,61 +20,65 @@ const checkAuth = () => {
 };
 
 // 初始化頁面
-const init = () => {
+const init = async () => {
     if (!checkAuth()) return;
 
-    // 獲取 DOM 元素
-    const softwareList = document.getElementById('softwareList');
-    const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const sortBy = document.getElementById('sortBy');
-    const sortDirection = document.getElementById('sortDirection');
-    const listViewBtn = document.getElementById('listViewBtn');
-    const gridViewBtn = document.getElementById('gridViewBtn');
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    const noResultsMessage = document.getElementById('noResultsMessage');
+    await loadSoftware();
+    setupEventListeners();
+};
 
-    // 顯示加載指示器
-    loadingIndicator.style.display = 'flex';
-    noResultsMessage.style.display = 'none';
-
-    // 模擬 API 請求延遲
-    setTimeout(() => {
-        displaySoftware(softwareData);
-        loadingIndicator.style.display = 'none';
-    }, 1000);
-
+// 設置事件監聽器
+function setupEventListeners() {
     // 搜索功能
-    searchInput.addEventListener('input', () => {
-        filterSoftware();
-    });
+    const searchInput = document.getElementById('search-input');
+    searchInput.addEventListener('input', debounce(async (e) => {
+        currentSearch = e.target.value;
+        currentPage = 1;
+        await loadSoftware();
+    }, 500));
 
-    // 類別過濾
-    categoryFilter.addEventListener('change', () => {
-        filterSoftware();
+    // 分類過濾
+    const categorySelect = document.getElementById('category-select');
+    categorySelect.addEventListener('change', async (e) => {
+        currentCategory = e.target.value;
+        currentPage = 1;
+        await loadSoftware();
     });
 
     // 排序功能
-    sortBy.addEventListener('change', () => {
-        filterSoftware();
+    const sortSelect = document.getElementById('sort-select');
+    sortSelect.addEventListener('change', async (e) => {
+        const [sort, order] = e.target.value.split('-');
+        currentSort = sort;
+        currentOrder = order;
+        currentPage = 1;
+        await loadSoftware();
     });
 
-    sortDirection.addEventListener('click', () => {
-        sortDirection.textContent = sortDirection.textContent === '升冪' ? '降冪' : '升冪';
-        filterSoftware();
-    });
+    // 無限滾動
+    window.addEventListener('scroll', debounce(async () => {
+        if (isLoading || !hasMore) return;
+        
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        if (scrollTop + clientHeight >= scrollHeight - 100) {
+            currentPage++;
+            await loadSoftware(true);
+        }
+    }, 200));
 
     // 視圖切換
+    const listViewBtn = document.getElementById('listViewBtn');
+    const gridViewBtn = document.getElementById('gridViewBtn');
     listViewBtn.addEventListener('click', () => {
-        softwareList.classList.remove('grid-view');
-        softwareList.classList.add('list-view');
+        document.getElementById('software-list').classList.remove('grid-view');
+        document.getElementById('software-list').classList.add('list-view');
         listViewBtn.classList.add('active');
         gridViewBtn.classList.remove('active');
     });
 
     gridViewBtn.addEventListener('click', () => {
-        softwareList.classList.remove('list-view');
-        softwareList.classList.add('grid-view');
+        document.getElementById('software-list').classList.remove('list-view');
+        document.getElementById('software-list').classList.add('grid-view');
         gridViewBtn.classList.add('active');
         listViewBtn.classList.remove('active');
     });
@@ -76,89 +88,74 @@ const init = () => {
         localStorage.removeItem('userEmail');
         window.location.href = 'login.html';
     });
-};
+}
 
-// 過濾和排序軟體
-const filterSoftware = () => {
-    const searchInput = document.getElementById('searchInput');
-    const categoryFilter = document.getElementById('categoryFilter');
-    const sortBy = document.getElementById('sortBy');
-    const sortDirection = document.getElementById('sortDirection');
-    const noResultsMessage = document.getElementById('noResultsMessage');
+// 載入軟體列表
+async function loadSoftware(append = false) {
+    try {
+        loading.show();
+        isLoading = true;
 
-    let filteredData = [...softwareData];
+        const data = await software.getAll({
+            page: currentPage,
+            search: currentSearch,
+            category: currentCategory,
+            sort: currentSort,
+            order: currentOrder
+        });
 
-    // 搜索過濾
-    const searchTerm = searchInput.value.toLowerCase();
-    if (searchTerm) {
-        filteredData = filteredData.filter(software => 
-            software.name.toLowerCase().includes(searchTerm) ||
-            software.description.toLowerCase().includes(searchTerm) ||
-            software.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-        );
-    }
-
-    // 類別過濾
-    const selectedCategory = categoryFilter.value;
-    if (selectedCategory) {
-        filteredData = filteredData.filter(software => 
-            software.category === selectedCategory
-        );
-    }
-
-    // 排序
-    const sortField = sortBy.value;
-    const isAscending = sortDirection.textContent === '升冪';
-    
-    filteredData.sort((a, b) => {
-        let comparison = 0;
-        if (sortField === 'name') {
-            comparison = a.name.localeCompare(b.name);
-        } else if (sortField === 'version') {
-            comparison = a.version.localeCompare(b.version);
-        } else if (sortField === 'date') {
-            comparison = new Date(a.date) - new Date(b.date);
+        if (!append) {
+            document.getElementById('software-list').innerHTML = '';
         }
-        return isAscending ? comparison : -comparison;
-    });
 
-    // 顯示結果
-    displaySoftware(filteredData);
+        if (data.items.length === 0) {
+            hasMore = false;
+            if (!append) {
+                showNoResults();
+            }
+            return;
+        }
 
-    // 顯示無結果消息
-    noResultsMessage.style.display = filteredData.length === 0 ? 'block' : 'none';
-};
+        renderSoftwareList(data.items);
+        hasMore = data.has_more;
+    } catch (err) {
+        error.show(err.error || '載入軟體列表失敗');
+    } finally {
+        loading.hide();
+        isLoading = false;
+    }
+}
 
-// 顯示軟體列表
-const displaySoftware = (softwareList) => {
-    const container = document.getElementById('softwareList');
-    container.innerHTML = '';
-
-    softwareList.forEach(software => {
+// 渲染軟體列表
+function renderSoftwareList(items) {
+    const container = document.getElementById('software-list');
+    
+    items.forEach(item => {
         const card = document.createElement('div');
         card.className = 'software-card';
         card.innerHTML = `
-            <img src="${software.icon}" alt="${software.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
-            <div class="category-tag">${software.category}</div>
-            <button class="favorite-btn" data-id="${software.id}">
-                <i class="far fa-star"></i>
-            </button>
-            <div class="content">
-                <h3>${software.name}</h3>
-                <p>${software.description}</p>
-                <div class="tags">
-                    ${software.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-                </div>
-                <div class="details">
-                    <span>版本: ${software.version}</span>
-                    <span>授權: ${software.license}</span>
-                    <span class="date">更新日期: ${software.date}</span>
-                </div>
-                <div class="metrics">
-                    <span><i class="fas fa-star"></i> ${software.stars.toLocaleString()}</span>
-                    <span><i class="fas fa-code-branch"></i> ${software.forks.toLocaleString()}</span>
-                    <span><i class="fas fa-download"></i> ${software.downloads.toLocaleString()}</span>
-                </div>
+            <div class="software-header">
+                <img src="${item.icon}" alt="${item.name}" class="software-icon">
+                <h3>${item.name}</h3>
+            </div>
+            <div class="software-details">
+                <p class="version">版本: ${item.version}</p>
+                <p class="license">授權: ${item.license}</p>
+                <p class="category">類別: ${item.category}</p>
+            </div>
+            <div class="software-description">
+                <p>${item.description}</p>
+            </div>
+            <div class="software-tags">
+                ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+            <div class="software-footer">
+                <button class="favorite-btn" data-id="${item.id}">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <a href="${item.video}" target="_blank" class="video-link">
+                    <i class="fas fa-video"></i> 觀看影片
+                </a>
             </div>
         `;
         container.appendChild(card);
@@ -171,7 +168,31 @@ const displaySoftware = (softwareList) => {
             toggleFavorite(softwareId, btn);
         });
     });
-};
+}
+
+// 顯示無結果提示
+function showNoResults() {
+    const container = document.getElementById('software-list');
+    container.innerHTML = `
+        <div class="no-results">
+            <i class="fas fa-search"></i>
+            <p>找不到符合條件的軟體</p>
+        </div>
+    `;
+}
+
+// 防抖函數
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
 // 切換收藏狀態
 const toggleFavorite = (softwareId, button) => {
