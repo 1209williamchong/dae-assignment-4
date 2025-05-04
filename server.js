@@ -21,6 +21,65 @@ let bookmarks = new Map(); // 使用 Map 來存儲用戶的書籤
 // JWT 密鑰
 const JWT_SECRET = 'your-secret-key';
 
+// 資料驗證中間件
+const validateUserInput = (req, res, next) => {
+  const { username, email, password } = req.body;
+
+  // 驗證用戶名
+  if (!username || username.length < 3 || username.length > 20) {
+    return res.status(400).json({ error: '用戶名長度必須在3-20個字符之間' });
+  }
+
+  // 驗證電子郵件格式
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ error: '請輸入有效的電子郵件地址' });
+  }
+
+  // 驗證密碼強度
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  if (!password || !passwordRegex.test(password)) {
+    return res.status(400).json({
+      error: '密碼必須包含至少8個字符，包括大寫字母、小寫字母和數字',
+    });
+  }
+
+  next();
+};
+
+// 驗證登入輸入
+const validateLoginInput = (req, res, next) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ error: '請提供用戶名和密碼' });
+  }
+
+  next();
+};
+
+// 驗證軟體搜尋參數
+const validateSearchParams = (req, res, next) => {
+  const { page, limit, search, category } = req.query;
+
+  // 驗證頁碼
+  if (page && (isNaN(page) || parseInt(page) < 1)) {
+    return res.status(400).json({ error: '頁碼必須是正整數' });
+  }
+
+  // 驗證每頁數量
+  if (limit && (isNaN(limit) || parseInt(limit) < 1 || parseInt(limit) > 100)) {
+    return res.status(400).json({ error: '每頁數量必須在1-100之間' });
+  }
+
+  // 驗證搜尋關鍵字長度
+  if (search && search.length > 100) {
+    return res.status(400).json({ error: '搜尋關鍵字太長' });
+  }
+
+  next();
+};
+
 // 驗證 JWT 中間件
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -303,7 +362,7 @@ const softwareData = [
 ];
 
 // 註冊 API
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', validateUserInput, async (req, res) => {
   const { username, email, password } = req.body;
 
   // 檢查用戶名是否已存在
@@ -329,7 +388,7 @@ app.post('/api/register', async (req, res) => {
 });
 
 // 登入 API
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', validateLoginInput, async (req, res) => {
   const { username, password } = req.body;
 
   const user = users.find(u => u.username === username);
@@ -346,17 +405,36 @@ app.post('/api/login', async (req, res) => {
 });
 
 // 獲取軟體列表
-app.get('/api/software', (req, res) => {
+app.get('/api/software', validateSearchParams, (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.search?.toLowerCase() || '';
+  const category = req.query.category || '';
+
+  let filteredData = [...softwareData];
+
+  // 搜尋過濾
+  if (search) {
+    filteredData = filteredData.filter(
+      item =>
+        item.title.toLowerCase().includes(search) ||
+        item.description.toLowerCase().includes(search) ||
+        item.tags.some(tag => tag.toLowerCase().includes(search))
+    );
+  }
+
+  // 分類過濾
+  if (category) {
+    filteredData = filteredData.filter(item => item.category === category);
+  }
+
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
-
-  const paginatedSoftware = softwareData.slice(startIndex, endIndex);
+  const paginatedData = filteredData.slice(startIndex, endIndex);
 
   res.json({
-    items: paginatedSoftware,
-    total: softwareData.length,
+    items: paginatedData,
+    total: filteredData.length,
     page,
     limit,
   });
@@ -379,8 +457,24 @@ app.get('/api/bookmarks', authenticateToken, (req, res) => {
   res.json(userBookmarks);
 });
 
+// 驗證收藏操作
+const validateBookmarkOperation = (req, res, next) => {
+  const softwareId = parseInt(req.params.softwareId);
+
+  if (isNaN(softwareId) || softwareId < 1) {
+    return res.status(400).json({ error: '無效的軟體ID' });
+  }
+
+  const software = softwareData.find(s => s.id === softwareId);
+  if (!software) {
+    return res.status(404).json({ error: '找不到指定的軟體' });
+  }
+
+  next();
+};
+
 // 添加收藏 API
-app.post('/api/bookmarks/:softwareId', authenticateToken, (req, res) => {
+app.post('/api/bookmarks/:softwareId', authenticateToken, validateBookmarkOperation, (req, res) => {
   const userId = req.user.id;
   const softwareId = parseInt(req.params.softwareId);
 
@@ -407,16 +501,21 @@ app.post('/api/bookmarks/:softwareId', authenticateToken, (req, res) => {
 });
 
 // 移除收藏 API
-app.delete('/api/bookmarks/:softwareId', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const softwareId = parseInt(req.params.softwareId);
+app.delete(
+  '/api/bookmarks/:softwareId',
+  authenticateToken,
+  validateBookmarkOperation,
+  (req, res) => {
+    const userId = req.user.id;
+    const softwareId = parseInt(req.params.softwareId);
 
-  let userBookmarks = bookmarks.get(userId) || [];
-  userBookmarks = userBookmarks.filter(b => b.id !== softwareId);
-  bookmarks.set(userId, userBookmarks);
+    let userBookmarks = bookmarks.get(userId) || [];
+    userBookmarks = userBookmarks.filter(b => b.id !== softwareId);
+    bookmarks.set(userId, userBookmarks);
 
-  res.json({ message: '移除收藏成功' });
-});
+    res.json({ message: '移除收藏成功' });
+  }
+);
 
 // 啟動伺服器
 app.listen(port, () => {

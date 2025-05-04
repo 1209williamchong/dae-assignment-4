@@ -340,18 +340,17 @@
         const searchTerm = e.target.value.toLowerCase();
         const category = document.getElementById('categorySelect').value;
 
-        const filteredSoftware = allSoftware.filter(software => {
-          const matchesSearch =
-            software.title.toLowerCase().includes(searchTerm) ||
-            software.description.toLowerCase().includes(searchTerm) ||
-            software.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+        // 清空當前列表
+        const container = document.getElementById('softwareList');
+        container.innerHTML = '';
 
-          const matchesCategory = !category || software.category === category;
+        // 重置分頁狀態
+        currentPage = 1;
+        hasMoreData = true;
+        allSoftware = [];
 
-          return matchesSearch && matchesCategory;
-        });
-
-        displaySoftware(filteredSoftware);
+        // 重新載入數據
+        loadMoreSoftware();
       });
 
       // 分類過濾
@@ -359,18 +358,17 @@
         const category = e.target.value;
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
-        const filteredSoftware = allSoftware.filter(software => {
-          const matchesSearch =
-            software.title.toLowerCase().includes(searchTerm) ||
-            software.description.toLowerCase().includes(searchTerm) ||
-            software.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+        // 清空當前列表
+        const container = document.getElementById('softwareList');
+        container.innerHTML = '';
 
-          const matchesCategory = !category || software.category === category;
+        // 重置分頁狀態
+        currentPage = 1;
+        hasMoreData = true;
+        allSoftware = [];
 
-          return matchesSearch && matchesCategory;
-        });
-
-        displaySoftware(filteredSoftware);
+        // 重新載入數據
+        loadMoreSoftware();
       });
 
       function showLoading() {
@@ -390,11 +388,18 @@
         showLoading();
 
         try {
-          const newSoftware = await fetchSoftware(currentPage);
-          if (newSoftware.length === 0) {
+          const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+          const category = document.getElementById('categorySelect').value;
+
+          const response = await fetch(
+            `http://localhost:3000/api/software?page=${currentPage}&limit=${itemsPerPage}&search=${searchTerm}&category=${category}`
+          );
+          const data = await response.json();
+
+          if (data.items.length === 0) {
             hasMoreData = false;
           } else {
-            displaySoftware(newSoftware);
+            displaySoftware(data.items);
             currentPage++;
           }
         } catch (error) {
