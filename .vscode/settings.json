@@ -29,5 +29,6 @@
   "prettier.useTabs": false,
   "prettier.bracketSpacing": true,
   "prettier.arrowParens": "avoid",
-  "prettier.endOfLine": "auto"
-} 
+  "prettier.endOfLine": "auto",
+  "liveServer.settings.port": 5501
+}
