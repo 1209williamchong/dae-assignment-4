@@ -99,6 +99,16 @@ export const software = {
     // 獲取分類列表
     getCategories: async () => {
         return await fetchWithErrorHandling(`${API_BASE_URL}/software/categories`);
+    },
+
+    // 獲取單個軟體詳情
+    getById: async (id) => {
+        return await fetchWithErrorHandling(`${API_BASE_URL}/software/${id}`);
+    },
+
+    // 獲取軟體統計信息
+    getStats: async () => {
+        return await fetchWithErrorHandling(`${API_BASE_URL}/software/stats`);
     }
 };
 
