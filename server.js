@@ -415,10 +415,16 @@ app.post('/api/login', validateLoginInput, async (req, res) => {
   res.json({ token });
 });
 
+// 獲取所有分類
+app.get('/api/categories', (req, res) => {
+  const categories = [...new Set(softwareData.map(item => item.category))].filter(Boolean);
+  res.json(categories);
+});
+
 // 獲取軟體列表
 app.get('/api/software', validateSearchParams, (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = Math.min(parseInt(req.query.limit) || 3, 5); // 預設 3，最大 5
   const search = req.query.search?.toLowerCase() || '';
   const category = req.query.category || '';
   const sort = req.query.sort || 'title';
@@ -481,13 +487,23 @@ app.get('/api/software', validateSearchParams, (req, res) => {
   const endIndex = startIndex + limit;
   const paginatedData = filteredData.slice(startIndex, endIndex);
 
+  // 格式化回應數據
+  const formattedData = paginatedData.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    category: item.category,
+    imageUrl: item.imageUrl,
+    videoUrl: item.video,
+  }));
+
   res.json({
-    items: paginatedData,
-    total: filteredData.length,
-    page,
-    limit,
-    sort,
-    order,
+    items: formattedData,
+    pagination: {
+      page,
+      limit,
+      total: filteredData.length,
+    },
   });
 });
 
@@ -505,68 +521,56 @@ app.get('/api/software/:id', (req, res) => {
 app.get('/api/bookmarks', authenticateToken, (req, res) => {
   const userId = req.user.id;
   const userBookmarks = bookmarks.get(userId) || [];
-  res.json(userBookmarks);
+  const itemIds = userBookmarks.map(b => b.id);
+  res.json({ item_ids: itemIds });
 });
 
-// 驗證收藏操作
-const validateBookmarkOperation = (req, res, next) => {
-  const softwareId = parseInt(req.params.softwareId);
-
-  if (isNaN(softwareId) || softwareId < 1) {
-    return res.status(400).json({ error: '無效的軟體ID' });
-  }
-
-  const software = softwareData.find(s => s.id === softwareId);
-  if (!software) {
-    return res.status(404).json({ error: '找不到指定的軟體' });
-  }
-
-  next();
-};
-
 // 添加收藏 API
-app.post('/api/bookmarks/:softwareId', authenticateToken, validateBookmarkOperation, (req, res) => {
+app.post('/api/bookmarks/:item_id', authenticateToken, (req, res) => {
   const userId = req.user.id;
-  const softwareId = parseInt(req.params.softwareId);
-
-  // 獲取軟體資訊
-  const software = softwareData.find(s => s.id === softwareId);
-
-  if (!software) {
-    return res.status(404).json({ error: '軟體不存在' });
-  }
+  const itemId = parseInt(req.params.item_id);
 
   // 獲取用戶的收藏列表
   let userBookmarks = bookmarks.get(userId) || [];
 
   // 檢查是否已經收藏
-  if (userBookmarks.some(b => b.id === softwareId)) {
-    return res.status(400).json({ error: '已經收藏過此軟體' });
+  const isAlreadyBookmarked = userBookmarks.some(b => b.id === itemId);
+
+  if (isAlreadyBookmarked) {
+    return res.json({ message: 'already bookmarked' });
+  }
+
+  // 獲取軟體資訊
+  const software = softwareData.find(s => s.id === itemId);
+  if (!software) {
+    return res.status(404).json({ error: '軟體不存在' });
   }
 
   // 添加收藏
   userBookmarks.push(software);
   bookmarks.set(userId, userBookmarks);
 
-  res.status(201).json({ message: '收藏成功' });
+  res.json({ message: 'newly bookmarked' });
 });
 
 // 移除收藏 API
-app.delete(
-  '/api/bookmarks/:softwareId',
-  authenticateToken,
-  validateBookmarkOperation,
-  (req, res) => {
-    const userId = req.user.id;
-    const softwareId = parseInt(req.params.softwareId);
+app.delete('/api/bookmarks/:item_id', authenticateToken, (req, res) => {
+  const userId = req.user.id;
+  const itemId = parseInt(req.params.item_id);
 
-    let userBookmarks = bookmarks.get(userId) || [];
-    userBookmarks = userBookmarks.filter(b => b.id !== softwareId);
-    bookmarks.set(userId, userBookmarks);
+  let userBookmarks = bookmarks.get(userId) || [];
+  const initialLength = userBookmarks.length;
 
-    res.json({ message: '移除收藏成功' });
+  // 移除收藏
+  userBookmarks = userBookmarks.filter(b => b.id !== itemId);
+  bookmarks.set(userId, userBookmarks);
+
+  if (userBookmarks.length === initialLength) {
+    return res.json({ message: 'already deleted' });
   }
-);
+
+  res.json({ message: 'newly deleted' });
+});
 
 // 啟動伺服器
 app.listen(port, () => {

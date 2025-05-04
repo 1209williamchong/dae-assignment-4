@@ -7,31 +7,44 @@
     <style>
       body {
         font-family: Arial, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
+        max-width: 100%;
+        margin: 0;
+        padding: 10px;
+        background-color: #f5f5f5;
       }
       .header {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
         align-items: center;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         padding: 10px;
-        background-color: #f5f5f5;
-        border-radius: 5px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .header h1 {
+        margin: 0 0 10px 0;
+        color: #333;
+        font-size: 20px;
       }
       .auth-buttons {
         display: flex;
-        gap: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
       }
       .auth-button {
-        padding: 8px 16px;
+        padding: 8px 15px;
         border: none;
-        border-radius: 4px;
+        border-radius: 20px;
         cursor: pointer;
         text-decoration: none;
         color: white;
-        transition: background-color 0.3s;
+        font-weight: bold;
+        transition: all 0.3s;
+        min-width: 80px;
+        text-align: center;
+        font-size: 14px;
       }
       .login-button {
         background-color: #4caf50;
@@ -58,58 +71,116 @@
         background-color: #f57c00;
       }
       .search-container {
-        margin-bottom: 20px;
         display: flex;
-        gap: 10px;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+        padding: 10px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-      .search-input {
-        flex: 1;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      .category-select {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
-      .sort-select {
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-      }
+      .search-input,
+      .category-select,
+      .sort-select,
       .order-select {
         padding: 8px;
         border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 20px;
+        font-size: 14px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .show-bookmarks-only {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        margin-top: 8px;
+        font-size: 14px;
+      }
+      .container {
+        position: relative;
+        height: calc(100vh - 200px);
+        overflow: hidden;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .software-list {
+        height: 100%;
+        overflow-y: auto;
+        padding: 10px;
       }
       .software-card {
         border: 1px solid #ddd;
         padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 5px;
+        margin-bottom: 10px;
+        border-radius: 8px;
         background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
       .software-card img {
-        max-width: 100px;
+        max-width: 100%;
         height: auto;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+      .software-card h2 {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 18px;
+      }
+      .software-card p {
+        margin: 4px 0;
+        color: #666;
+        line-height: 1.4;
+        font-size: 14px;
+      }
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin: 8px 0;
       }
       .tag {
-        display: inline-block;
-        background: #f0f0f0;
-        padding: 2px 8px;
-        margin: 2px;
-        border-radius: 4px;
-        font-size: 0.9em;
+        background-color: #e9ecef;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        color: #495057;
+      }
+      .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+        margin: 10px 0;
+        border-radius: 8px;
+      }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 8px;
       }
       .bookmark-button {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-radius: 20px;
         background-color: #2196f3;
         color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
+        font-weight: bold;
         cursor: pointer;
+        transition: all 0.3s;
         margin-top: 10px;
+        font-size: 14px;
       }
       .bookmark-button:hover {
         background-color: #1976d2;
@@ -120,55 +191,29 @@
       .bookmark-button.bookmarked:hover {
         background-color: #d32f2f;
       }
-      .video-container {
-        margin-top: 10px;
-        position: relative;
-        padding-bottom: 56.25%; /* 16:9 比例 */
-        height: 0;
-        overflow: hidden;
-      }
-      .video-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: 0;
-      }
-      .date {
-        color: #666;
-        font-size: 0.9em;
-        margin-top: 5px;
-      }
-      .container {
-        position: relative;
-        height: 600px;
-        overflow: hidden;
-      }
-      .software-list {
-        height: 100%;
-        overflow-y: auto;
-        padding: 10px;
-      }
       .loading-indicator {
         position: fixed;
-        bottom: 20px;
+        bottom: 15px;
         left: 50%;
         transform: translateX(-50%);
         background-color: rgba(0, 0, 0, 0.8);
         color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
+        padding: 8px 15px;
+        border-radius: 20px;
         display: none;
         z-index: 1000;
+        font-size: 12px;
       }
       .spinner {
-        border: 4px solid rgba(0, 0, 0, 0.1);
-        border-top: 4px solid #007bff;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 16px;
+        height: 16px;
         animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 8px;
+        vertical-align: middle;
       }
       @keyframes spin {
         0% {
@@ -176,6 +221,51 @@
         }
         100% {
           transform: rotate(360deg);
+        }
+      }
+
+      @media (min-width: 768px) {
+        body {
+          padding: 15px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+        .header {
+          flex-direction: row;
+          justify-content: space-between;
+          padding: 8px 15px;
+        }
+        .header h1 {
+          margin: 0;
+        }
+        .search-container {
+          flex-direction: row;
+          flex-wrap: wrap;
+          padding: 8px 15px;
+        }
+        .search-input,
+        .category-select,
+        .sort-select,
+        .order-select {
+          width: auto;
+          flex: 1;
+          min-width: 150px;
+        }
+        .show-bookmarks-only {
+          margin-top: 0;
+        }
+        .software-card {
+          display: flex;
+          flex-wrap: wrap;
+          padding: 12px;
+        }
+        .software-card img {
+          width: 150px;
+          margin-right: 15px;
+        }
+        .software-card-content {
+          flex: 1;
+          min-width: 250px;
         }
       }
     </style>
@@ -268,8 +358,8 @@
           });
 
           if (response.ok) {
-            const bookmarks = await response.json();
-            userBookmarks = new Set(bookmarks.map(b => b.id));
+            const data = await response.json();
+            userBookmarks = new Set(data.item_ids);
             displaySoftware(allSoftware);
           }
         } catch (error) {
@@ -300,11 +390,23 @@
       }
 
       function updateCategories(softwareList) {
-        const categories = [...new Set(softwareList.map(s => s.category))];
+        const categories = [...new Set(softwareList.map(s => s.category))].filter(Boolean);
         const select = document.getElementById('categorySelect');
-        select.innerHTML =
-          '<option value="">所有分類</option>' +
-          categories.map(category => `<option value="${category}">${category}</option>`).join('');
+        const currentValue = select.value;
+
+        // 保存當前選中的值
+        select.innerHTML = '<option value="">所有分類</option>';
+
+        // 添加所有分類選項
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category;
+          option.textContent = category;
+          if (category === currentValue) {
+            option.selected = true;
+          }
+          select.appendChild(option);
+        });
       }
 
       // 收藏/取消收藏功能
@@ -326,10 +428,11 @@
           });
 
           if (response.ok) {
-            if (isBookmarked) {
-              userBookmarks.delete(softwareId);
-            } else {
+            const data = await response.json();
+            if (method === 'POST' && data.message === 'newly bookmarked') {
               userBookmarks.add(softwareId);
+            } else if (method === 'DELETE' && data.message === 'newly deleted') {
+              userBookmarks.delete(softwareId);
             }
             displaySoftware(allSoftware);
           }
@@ -348,16 +451,10 @@
             <img src="${software.imageUrl}" alt="${software.title}" />
             <h2>${software.title}</h2>
             <p>${software.description}</p>
-            <p>版本: ${software.version}</p>
-            <p>授權: ${software.license}</p>
             <p>分類: ${software.category}</p>
-            <div class="tags">
-              ${software.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-            </div>
             <div class="video-container">
-              <iframe src="${software.video}" allowfullscreen></iframe>
+              <iframe src="${software.videoUrl}" allowfullscreen></iframe>
             </div>
-            <p class="date">更新日期: ${software.date}</p>
             <button class="bookmark-button ${userBookmarks.has(software.id) ? 'bookmarked' : ''}" 
                     onclick="toggleBookmark(${software.id})">
               ${userBookmarks.has(software.id) ? '取消收藏' : '收藏'}
@@ -453,13 +550,15 @@
           const showBookmarksOnly = document.getElementById('showBookmarksOnly').checked;
 
           const response = await fetch(
-            `http://localhost:3000/api/software?page=${currentPage}&limit=${itemsPerPage}&search=${searchTerm}&category=${category}&sort=${sort}&order=${order}&bookmarksOnly=${showBookmarksOnly}`
+            `http://localhost:3000/api/software?page=${currentPage}&limit=3&search=${searchTerm}&category=${category}&sort=${sort}&order=${order}&bookmarksOnly=${showBookmarksOnly}`
           );
           const data = await response.json();
 
           if (data.items.length === 0) {
             hasMoreData = false;
           } else {
+            // 更新分類選項
+            updateCategories(data.items);
             displaySoftware(data.items);
             currentPage++;
           }
@@ -482,16 +581,42 @@
         }
       }
 
+      // 頁面載入時檢查登入狀態並獲取軟體列表
+      checkAuth();
+
+      // 載入分類選項
+      async function loadCategories() {
+        try {
+          const response = await fetch('http://localhost:3000/api/categories');
+          const categories = await response.json();
+          const select = document.getElementById('categorySelect');
+
+          // 清空現有選項
+          select.innerHTML = '<option value="">所有分類</option>';
+
+          // 添加分類選項
+          categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category;
+            option.textContent = category;
+            select.appendChild(option);
+          });
+        } catch (error) {
+          console.error('載入分類失敗:', error);
+        }
+      }
+
+      // 頁面載入時載入分類
       document.addEventListener('DOMContentLoaded', async () => {
         const container = document.getElementById('softwareList');
         container.addEventListener('scroll', handleScroll);
 
+        // 載入分類選項
+        await loadCategories();
+
         // 初始載入
         await loadMoreSoftware();
       });
-
-      // 頁面載入時檢查登入狀態並獲取軟體列表
-      checkAuth();
     </script>
   </body>
 </html>
