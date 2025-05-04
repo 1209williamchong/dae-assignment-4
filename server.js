@@ -60,7 +60,7 @@ const validateLoginInput = (req, res, next) => {
 
 // 驗證軟體搜尋參數
 const validateSearchParams = (req, res, next) => {
-  const { page, limit, search, category } = req.query;
+  const { page, limit, search, category, sort, order } = req.query;
 
   // 驗證頁碼
   if (page && (isNaN(page) || parseInt(page) < 1)) {
@@ -75,6 +75,17 @@ const validateSearchParams = (req, res, next) => {
   // 驗證搜尋關鍵字長度
   if (search && search.length > 100) {
     return res.status(400).json({ error: '搜尋關鍵字太長' });
+  }
+
+  // 驗證排序參數
+  const validSortFields = ['title', 'version', 'date', 'category'];
+  if (sort && !validSortFields.includes(sort)) {
+    return res.status(400).json({ error: '無效的排序欄位' });
+  }
+
+  // 驗證排序方向
+  if (order && !['asc', 'desc'].includes(order)) {
+    return res.status(400).json({ error: '排序方向必須是 asc 或 desc' });
   }
 
   next();
@@ -410,6 +421,9 @@ app.get('/api/software', validateSearchParams, (req, res) => {
   const limit = parseInt(req.query.limit) || 10;
   const search = req.query.search?.toLowerCase() || '';
   const category = req.query.category || '';
+  const sort = req.query.sort || 'title';
+  const order = req.query.order || 'asc';
+  const bookmarksOnly = req.query.bookmarksOnly === 'true';
 
   let filteredData = [...softwareData];
 
@@ -428,6 +442,41 @@ app.get('/api/software', validateSearchParams, (req, res) => {
     filteredData = filteredData.filter(item => item.category === category);
   }
 
+  // 只顯示收藏項目
+  if (bookmarksOnly) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: '需要登入才能查看收藏項目' });
+    }
+
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const userBookmarks = bookmarks.get(decoded.id) || [];
+      const bookmarkIds = new Set(userBookmarks.map(b => b.id));
+      filteredData = filteredData.filter(item => bookmarkIds.has(item.id));
+    } catch (error) {
+      return res.status(401).json({ error: '無效的登入狀態' });
+    }
+  }
+
+  // 排序
+  filteredData.sort((a, b) => {
+    let aValue = a[sort];
+    let bValue = b[sort];
+
+    // 處理日期排序
+    if (sort === 'date') {
+      aValue = new Date(aValue);
+      bValue = new Date(bValue);
+    }
+
+    if (order === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
   const startIndex = (page - 1) * limit;
   const endIndex = startIndex + limit;
   const paginatedData = filteredData.slice(startIndex, endIndex);
@@ -437,6 +486,8 @@ app.get('/api/software', validateSearchParams, (req, res) => {
     total: filteredData.length,
     page,
     limit,
+    sort,
+    order,
   });
 });
 
